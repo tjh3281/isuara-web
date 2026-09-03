@@ -18,16 +18,6 @@ import { CATALOG, loadMotion, resolveQuery } from '../lib/avatar/repository'
 /** Loaded paused on open, as the Android screen does. */
 const INITIAL_SIGN = 'terima_kasih'
 
-type ViewPreset = 'front' | 'side45' | 'profile90' | 'behind' | 'hands'
-
-const VIEWS: ReadonlyArray<{ id: ViewPreset; label: string }> = [
-  { id: 'front', label: 'Front' },
-  { id: 'side45', label: 'Side 45°' },
-  { id: 'profile90', label: 'Profile 90°' },
-  { id: 'behind', label: 'Behind' },
-  { id: 'hands', label: 'Hands Zoom' },
-]
-
 export function AvatarScreen() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const rendererRef = useRef<AvatarRenderer | null>(null)
@@ -37,7 +27,6 @@ export function AvatarScreen() {
   const [input, setInput] = useState('')
   const [activeWord, setActiveWord] = useState('')
   const [status, setStatus] = useState('')
-  const [view, setView] = useState<ViewPreset>('front')
 
   if (!playerRef.current) playerRef.current = new MotionPlayer()
   const player = playerRef.current
@@ -157,23 +146,14 @@ export function AvatarScreen() {
     <div className="avatar">
       <canvas ref={canvasRef} className="avatar__canvas" />
 
+      {/*
+        Just the sign being played. The fixed camera presets that used to sit
+        here are gone — dragging and pinching reach every angle they offered,
+        and a row of five buttons over the viewport was the loudest thing on a
+        screen whose subject is the avatar.
+      */}
       <div className="avatar__hud">
         <span className="avatar__word">{activeWord || '—'}</span>
-        <div className="avatar__views">
-          {VIEWS.map((v) => (
-            <button
-              key={v.id}
-              type="button"
-              className={`avatar__view${view === v.id ? ' avatar__view--active' : ''}`}
-              onClick={() => {
-                setView(v.id)
-                rendererRef.current?.setView(v.id)
-              }}
-            >
-              {v.label}
-            </button>
-          ))}
-        </div>
       </div>
 
       {status && <p className="avatar__status">{status}</p>}

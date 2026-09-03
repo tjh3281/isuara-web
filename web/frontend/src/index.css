@@ -382,7 +382,15 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /*
+   * Top-aligned, not centred. A scroll container that centres its content
+   * clips the overflowing top and makes it unreachable — you cannot scroll
+   * above the start of a centred flex item. That never bit while the debate was
+   * collapsed, because the card only ever held a line or two; with every
+   * interpreter now on screen it would. The empty state centres itself instead,
+   * below.
+   */
+  justify-content: flex-start;
   gap: 0;
   overflow-y: auto;
   background: var(--surface);
@@ -397,7 +405,10 @@ body {
   line-height: 24px;
 }
 
+/* Alone in the card, so auto margins centre it — the effect the card used to
+   get from justify-content, without the clipping that came with it. */
 .card__glosses--empty {
+  margin: auto 0;
   color: var(--text-empty);
 }
 
@@ -593,43 +604,34 @@ body {
 
 /* ── debate accordion ── */
 
+/*
+ * Separated from the translation above it by a rule rather than by distance,
+ * because the card is centred text and this block is left-aligned — without a
+ * boundary the change in alignment reads as a mistake.
+ */
 .debate {
   width: 100%;
-  margin-top: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--divider);
   text-align: left;
 }
 
-.debate__toggle {
+/*
+ * A label, not a control. It was a blue accent-coloured button when it opened
+ * the panel; now that nothing is hidden it should recede, so it takes the
+ * secondary text colour and the small-caps treatment used for section labels.
+ */
+.debate__heading {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
-  padding: 6px 0;
-  border: none;
-  background: none;
-  color: var(--accent);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.debate__summary {
-  flex: 1;
-  text-align: left;
-}
-
-.debate__chevron {
-  display: grid;
-  place-items: center;
-  transition: transform 160ms ease;
-}
-
-.debate__chevron--open {
-  transform: rotate(180deg);
-}
-
-.debate__body {
-  padding-top: 6px;
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-empty);
 }
 
 .debate__agents {
@@ -655,19 +657,36 @@ body {
 }
 
 .debate__model {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.02em;
   color: var(--text-secondary);
 }
 
+/* Names the judge's pick in words, so it does not rest on the green tint
+   alone — that tint is invisible to a red-green colour-blind reader. */
+.debate__chosen-tag {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgb(76 175 80 / 0.18);
+  color: var(--confident);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .debate__sentence {
   display: block;
-  margin-top: 2px;
+  margin-top: 3px;
   font-size: 13.5px;
-  line-height: 1.4;
-  color: var(--text);
+  line-height: 1.45;
+  /* Was var(--text), which is not defined anywhere — the declaration was
+     dropped and the colour came from inheritance, which happened to be right.
+     Named explicitly so it stays right. */
+  color: var(--white);
 }
 
 .debate__pending,
@@ -790,30 +809,6 @@ body {
   background: rgb(0 0 0 / 0.5);
   font-size: 12px;
   font-weight: 700;
-}
-
-.avatar__views {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 4px;
-  pointer-events: auto;
-}
-
-.avatar__view {
-  padding: 5px 9px;
-  border: 1px solid #30363d;
-  border-radius: 999px;
-  background: rgb(13 17 23 / 0.85);
-  color: #8b949e;
-  font: inherit;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.avatar__view--active {
-  border-color: #58a6ff;
-  color: #58a6ff;
 }
 
 .avatar__status {

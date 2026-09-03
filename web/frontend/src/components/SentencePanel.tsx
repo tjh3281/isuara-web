@@ -11,7 +11,7 @@
 import { glossIn, type LabelMap } from '../lib/labelMap'
 import { forLanguage, isSecondary, type LanguageDef, type Translation } from '../lib/language'
 import { STAGE_LABELS, type DebateProgress } from '../lib/translateClient'
-import { DebateAccordion } from './DebateAccordion'
+import { DebatePanel } from './DebatePanel'
 import type { PredictionState } from '../lib/signPredictor'
 
 interface Props {
@@ -91,7 +91,7 @@ export function SentencePanel({
                     )}
                   </>
                 )}
-                <DebateAccordion progress={progress} active={isTranslating} />
+                <DebatePanel progress={progress} active={isTranslating} />
               </>
             )}
           </div>

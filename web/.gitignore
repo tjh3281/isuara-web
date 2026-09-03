@@ -39,3 +39,8 @@ frontend/public/models/
 frontend/public/fonts/
 frontend/public/motions/
 frontend/src/assets/*.ttf
+
+# The Netlify CLI's local link state (the deployed site's id). Written into
+# web/frontend by `netlify deploy`; the CLI wants to add this to the root
+# .gitignore, which belongs to the Android project, so it lives here instead.
+.netlify
