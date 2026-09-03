@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#0a0a0b"/>
+  <!-- A signing hand: four fingers and a thumb, in the confident-green the
+       app uses when a sign is recognised. -->
+  <g stroke="#4ade80" stroke-width="5.5" stroke-linecap="round" fill="none">
+    <path d="M22 40V19"/>
+    <path d="M30 40V15"/>
+    <path d="M38 40V18"/>
+    <path d="M46 41V25"/>
+    <path d="M18 34l-4 6"/>
+  </g>
+  <path d="M16 40h32v4a12 12 0 01-12 12h-8a12 12 0 01-12-12z" fill="#4ade80"/>
+</svg>

@@ -1,0 +1,30 @@
+# TensorFlow is pinned to a NARROW window, and both bounds are real.
+#
+# The model was converted with SELECT_TF_OPS, so it carries Flex ops
+# (FlexTensorListReserve/SetItem/Stack) that need the TFLite Flex delegate.
+# Measured on this project's own bim_lstm_v3_f32.tflite:
+#
+#   2.16.1  Flex delegate present, but the TFLite runtime is too old —
+#           "Didn't find op for builtin opcode 'FULLY_CONNECTED' version '12'"
+#   2.17.1  PASS
+#   2.18.1  PASS
+#   2.19.0  PASS   <- pinned: newest version that works
+#   2.20+   Flex delegate REMOVED from the pip package. Fails with
+#           "Select TensorFlow op(s) ... not supported by this interpreter".
+#           Matches the deprecation notice: "tf.lite.Interpreter is deprecated
+#           and is scheduled for deletion in TF 2.20."
+#
+# The delegate depends on the TensorFlow VERSION, not the operating system —
+# 2.19 works on Windows and Linux alike, 2.21 fails on both. Do not bump this
+# without re-running `bash tools/try-tf-versions.sh <version>`.
+#
+# Python: TF 2.19 supports 3.9-3.12. NOT 3.13 or 3.14.
+tensorflow==2.19.0
+numpy<3
+
+fastapi==0.118.0
+uvicorn[standard]==0.37.0
+
+# The same provider the Android app uses, so translations match.
+google-genai==1.46.0
+python-dotenv==1.1.1

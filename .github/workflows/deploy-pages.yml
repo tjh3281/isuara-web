@@ -1,0 +1,77 @@
+name: Deploy web to GitHub Pages
+
+# The site is fully static: camera, MediaPipe tracking, the feature pipeline and
+# text-to-speech all run in the browser. Sign recognition and translation need
+# the Python backend, which Pages cannot host — the app probes for it at startup
+# and simply runs without those two features when it is absent.
+#
+# Runs only when the web build or the assets it copies actually change, so
+# pushes to the Android app alone do not trigger a redeploy.
+
+on:
+  push:
+    branches: [website]
+    paths:
+      - 'web/frontend/**'
+      - 'app/src/main/assets/**'
+      - 'app/src/main/res/font/**'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let an in-flight deploy finish rather than cancelling it half-published.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: web/frontend/package-lock.json
+
+      - run: npm ci
+
+      # prebuild runs scripts/copy-assets.mjs, which pulls the MediaPipe .task
+      # bundles, label_map.json and google_sans_flex.ttf out of the Android app
+      # so the two builds can never drift onto different models or fonts.
+      - name: Build
+        run: npm run build
+        env:
+          # Project sites live at /<repo>/, so asset URLs need that prefix.
+          # Derived from the repo name rather than hardcoded, so a rename or a
+          # fork still produces working paths.
+          VITE_BASE: /${{ github.event.repository.name }}/
+
+      # Pages serves 404.html for unknown paths; making it the app shell means a
+      # deep link or a refresh still loads the site instead of a GitHub 404.
+      - name: SPA fallback
+        run: cp dist/index.html dist/404.html
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/frontend/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,8 @@
+# Shell scripts must keep LF endings. This repo is developed on Windows, where
+# git's autocrlf would otherwise rewrite them to CRLF on checkout — and bash
+# fails on a CRLF shebang with the notoriously unhelpful
+# "/usr/bin/env: 'bash\r': No such file or directory".
+*.sh text eol=lf
+
+# Same reasoning for anything else read by a POSIX shell or Python under WSL.
+*.py text eol=lf

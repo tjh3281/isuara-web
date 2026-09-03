@@ -1,0 +1,531 @@
+/*
+ * Design tokens transcribed directly from ui/CameraScreen.kt.
+ *
+ * Every value below has a named counterpart in the Compose source, and the
+ * variable names say which. That is the point: when the app's design changes,
+ * the diff here should be mechanical rather than a re-interpretation. Do not
+ * "improve" these values — the goal is parity with the phone, not a nicer
+ * palette.
+ *
+ * Compose dp/sp map 1:1 to CSS px at baseline density.
+ */
+
+:root {
+  /* Colour(0xFF……) literals, verbatim */
+  --confident: #4caf50; /* Color(0xFF4CAF50) — confident word, buffer bar, speak FAB */
+  --unsure: #ff9800; /* Color(0xFFFF9800) — low-confidence bar */
+  --accent: #2196f3; /* Color(0xFF2196F3) — Translate, active toggle, spinner */
+  --translation: #64b5f6; /* Color(0xFF64B5F6) — translated sentence */
+
+  /* Compose named colours */
+  --black: #000000; /* Color.Black */
+  --white: #ffffff; /* Color.White */
+  --dark-gray: #444444; /* Color.DarkGray */
+  --pose: #00ff00; /* Color.Green */
+  --hand-left: #ff00ff; /* Color.Magenta */
+  --hand-right: #00ffff; /* Color.Cyan */
+
+  /* .copy(alpha = …) variants */
+  --scrim: rgb(0 0 0 / 0.5); /* Black 0.5 — HUD chips */
+  --surface: rgb(255 255 255 / 0.1); /* White 0.1 — card, icon buttons */
+  --divider: rgb(255 255 255 / 0.2); /* White 0.2 */
+  --text-empty: rgb(255 255 255 / 0.3); /* White 0.3 — placeholder */
+  --text-secondary: rgb(255 255 255 / 0.55); /* White 0.55 — second gloss row */
+  --text-unsure: rgb(255 255 255 / 0.7); /* White 0.7 — unconfident word */
+
+  /* dp */
+  --r-card: 12px; /* RoundedCornerShape(12.dp) */
+  --r-chip: 16px; /* RoundedCornerShape(16.dp) — FPS badge */
+  --button-h: 56px; /* uniformButtonHeight */
+  --gap: 16px; /* the dominant Spacer/padding value */
+
+  color-scheme: dark;
+}
+
+/*
+ * The same typeface the app loads through R.font.google_sans_flex, copied out
+ * of res/font by scripts/copy-assets.mjs. `swap` so a slow 3.9MB load shows
+ * fallback text rather than nothing.
+ */
+@font-face {
+  font-family: 'Google Sans Flex';
+  /* Relative so Vite fingerprints it and rewrites the URL for whatever `base`
+     the site is deployed under — an absolute /fonts/… path 404s on GitHub
+     Pages, which serves from /<repo>/ rather than the domain root. */
+  src: url('./assets/google_sans_flex.ttf') format('truetype');
+  font-weight: 100 1000;
+  font-display: swap;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--black);
+  color: var(--white);
+  font-family: 'Google Sans Flex', ui-sans-serif, system-ui, 'Segoe UI', Roboto,
+    'Noto Sans', 'Noto Sans SC', 'Noto Sans Tamil', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/*
+ * The app is a phone screen: a full-height Column on black. Capped at a handset
+ * width and centred, because the camera box below is portrait 3:4 and would be
+ * absurd stretched across a desktop monitor.
+ */
+.app {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--black);
+}
+
+/* ── camera: Box(fillMaxWidth).aspectRatio(3f / 4f) ── */
+
+.camera {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4; /* Compose aspectRatio(w/h) = 0.75 — portrait, not landscape */
+  background: var(--dark-gray);
+  overflow: hidden;
+  flex: none;
+}
+
+.camera__video,
+.camera__overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.camera__video {
+  object-fit: cover; /* PreviewView.ScaleType.FILL_CENTER */
+  display: block;
+}
+
+.camera__overlay {
+  pointer-events: none;
+}
+
+.camera__placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+  background: var(--dark-gray);
+  color: var(--text-unsure);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.camera__error {
+  color: var(--unsure);
+  max-width: 30ch;
+}
+
+/* Row(fillMaxWidth).statusBarsPadding().padding(16.dp) */
+.camera__hud {
+  position: absolute;
+  inset: var(--gap) var(--gap) auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.camera__hud-actions {
+  display: flex;
+  gap: 8px; /* Arrangement.spacedBy(8.dp) */
+}
+
+/* Surface(Black 0.5, RoundedCornerShape(16.dp)) + Text(12.sp, Bold) */
+.badge {
+  padding: 6px 12px; /* padding(horizontal = 12.dp, vertical = 6.dp) */
+  border-radius: var(--r-chip);
+  background: var(--scrim);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* IconButton — Material3 default 40.dp touch target */
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--scrim);
+  color: var(--white);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.icon-button--active {
+  background: var(--accent); /* Color(0xFF2196F3) when landmarks are on */
+}
+
+/* LinearProgressIndicator(height 4.dp, track Transparent) */
+.camera__buffer {
+  position: absolute;
+  inset: auto 0 0;
+  height: 4px;
+  background: transparent;
+}
+
+.camera__buffer-fill {
+  height: 100%;
+  background: var(--confident);
+  transition: width 90ms linear;
+}
+
+/* ── centre panel: Column(weight(1f)).padding(16.dp) ── */
+
+.panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--gap);
+  min-height: 0;
+}
+
+/* Box(height = 60.dp) */
+.current {
+  height: 60px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 24.sp, FontWeight.Black, letterSpacing 2.sp, uppercase */
+.current__word {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: var(--text-unsure);
+  transition: color 160ms ease;
+}
+
+.current__word--confident {
+  color: var(--confident);
+}
+
+/* 15.sp, Medium, letterSpacing 1.sp, alpha 0.65 of the word colour */
+.current__secondary {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  opacity: 0.65;
+  color: inherit;
+}
+
+/* LinearProgressIndicator(width 100.dp, height 2.dp, clip RoundedCornerShape(1.dp)) */
+.confidence {
+  width: 100px;
+  height: 2px;
+  flex: none;
+  border-radius: 1px;
+  background: var(--dark-gray);
+  overflow: hidden;
+}
+
+.confidence__fill {
+  height: 100%;
+  background: var(--unsure);
+  transition:
+    width 180ms ease,
+    background 160ms ease;
+}
+
+.confidence__fill--confident {
+  background: var(--confident);
+}
+
+/* Surface(White 0.1, RoundedCornerShape(12.dp)).fillMaxWidth().weight(1f) */
+.card {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  margin-top: var(--gap); /* Spacer(16.dp) */
+  padding: var(--gap);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: var(--r-card);
+  text-align: center;
+}
+
+/* 18.sp, lineHeight 24.sp */
+.card__glosses {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.card__glosses--empty {
+  color: var(--text-empty);
+}
+
+/* 15.sp, lineHeight 20.sp, White 0.55 */
+.card__glosses-secondary {
+  margin: 0;
+  font-size: 15px;
+  line-height: 20px;
+  color: var(--text-secondary);
+}
+
+/* HorizontalDivider(White 0.2).padding(vertical = 8.dp) inside a 8.dp-top Column */
+.card__result {
+  width: 100%;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--divider);
+}
+
+.card__stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Spacer(width = 8.dp) */
+  margin: 0;
+  font-size: 14px;
+  color: var(--accent);
+}
+
+/* CircularProgressIndicator(size 16.dp, strokeWidth 2.dp) */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: var(--accent);
+  border-right-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+  flex: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 18.sp, Medium, Color(0xFF64B5F6) */
+.card__translation {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--translation);
+}
+
+/* 15.sp, Normal, alpha 0.7, padding(top = 4.dp) */
+.card__translation-secondary {
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--translation);
+  opacity: 0.7;
+}
+
+/* ── controls: Row(spacedBy 12.dp), every child 56.dp tall ── */
+
+.controls {
+  width: 100%;
+  flex: none;
+  margin-top: var(--gap); /* Spacer(16.dp) */
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.controls__language {
+  position: relative;
+  flex: none;
+}
+
+/* FilledIconButton(size 56.dp, containerColor White 0.1) */
+.chip {
+  width: var(--button-h);
+  height: var(--button-h);
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--white);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.chip:hover {
+  background: rgb(255 255 255 / 0.16);
+}
+
+/* Button(weight(1f), height 56.dp, containerColor 0xFF2196F3), 16.sp Bold */
+.button {
+  flex: 1;
+  height: var(--button-h);
+  min-width: 0;
+  border: none;
+  border-radius: 100px; /* Material3 Button default is a full pill */
+  background: var(--accent);
+  color: var(--white);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    opacity 120ms ease;
+}
+
+.button:hover:not(:disabled) {
+  background: #1e88e5;
+}
+
+/* Material3 disabled container: onSurface at 12% over the surface */
+.button:disabled {
+  background: rgb(255 255 255 / 0.12);
+  color: rgb(255 255 255 / 0.38);
+  cursor: not-allowed;
+}
+
+/* FloatingActionButton(size 56.dp, containerColor 0xFF4CAF50, elevation 0.dp) */
+.fab {
+  width: var(--button-h);
+  height: var(--button-h);
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--r-card); /* M3 FAB uses a 16.dp-ish rounded square */
+  background: var(--confident);
+  color: var(--white);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.fab:hover:not(:disabled) {
+  background: #43a047;
+}
+
+.fab:disabled {
+  background: rgb(255 255 255 / 0.12);
+  color: rgb(255 255 255 / 0.38);
+  cursor: not-allowed;
+}
+
+/* DropdownMenu — Material3 surface, opens upward above the 56.dp row */
+.menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  min-width: 180px;
+  padding: 8px 0;
+  background: #1f1f1f;
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.6);
+  z-index: 10;
+}
+
+.menu__item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  color: var(--white);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu__item:hover {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.menu__item--active {
+  font-weight: 700;
+}
+
+/*
+ * Degraded-state notice. Has no counterpart in the app — the phone cannot reach
+ * a state where the model is missing. Kept deliberately quiet and it disappears
+ * entirely once the backend loads the model.
+ */
+.notice {
+  margin: var(--gap) var(--gap) 0;
+  padding: 12px 14px;
+  background: rgb(255 152 0 / 0.1);
+  border-radius: var(--r-card);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.notice strong {
+  color: var(--unsure);
+  font-weight: 700;
+}
+
+.notice details {
+  margin-top: 6px;
+}
+
+.notice summary {
+  cursor: pointer;
+  color: var(--text-empty);
+  font-size: 12px;
+}
+
+.notice pre {
+  margin: 8px 0 0;
+  padding: 10px;
+  max-height: 160px;
+  overflow: auto;
+  background: rgb(0 0 0 / 0.4);
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  color: var(--text-empty);
+}

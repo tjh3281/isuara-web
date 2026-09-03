@@ -1,0 +1,822 @@
+{
+  "actions_ordered": [
+    "Sama-sama",
+    "Sekolah",
+    "Ada",
+    "Duduk",
+    "Maaf",
+    "Gembira",
+    "Curi",
+    "Rumah",
+    "Demam",
+    "Dia",
+    "Apa Khabar",
+    "Dua",
+    "Hari ini",
+    "Ibu",
+    "Kita",
+    "Klinik",
+    "Benda",
+    "Lima",
+    "Doktor",
+    "Bila",
+    "Pergi",
+    "Salah",
+    "Berhenti",
+    "Hilang",
+    "Pagi",
+    "Apa",
+    "Bayar",
+    "Esok",
+    "Isteri",
+    "Enam",
+    "Empat",
+    "Anak",
+    "Berapa",
+    "Betul",
+    "Selamat Malam",
+    "Kami",
+    "Kerja",
+    "Balik",
+    "Sekarang",
+    "Belajar",
+    "Awak",
+    "Boleh",
+    "Minum",
+    "Sihat",
+    "Malam",
+    "Saya",
+    "Ayah",
+    "Abang",
+    "Bangun",
+    "Dahaga",
+    "Masjid",
+    "Kakak",
+    "Beli",
+    "Polis",
+    "Tak tahu",
+    "Faham",
+    "Sakit perut",
+    "Petang",
+    "Kecil",
+    "Mahu",
+    "Satu",
+    "Hospital",
+    "Khabar Baik",
+    "Hello",
+    "Kawan",
+    "Cantik",
+    "Sedih",
+    "Mengapa",
+    "Makan",
+    "Sedap",
+    "Kedai",
+    "Sakit",
+    "Marah",
+    "Lapan",
+    "Mana",
+    "Baik",
+    "Waalaikumussalam",
+    "Semalam",
+    "Tidak boleh",
+    "Tandas",
+    "Tiga",
+    "Tahu",
+    "Sepuluh",
+    "Siapa",
+    "Selamat Pagi",
+    "Tidur",
+    "Tolong",
+    "Ya",
+    "Suami",
+    "Tidak ada",
+    "Sembilan",
+    "Suka",
+    "Tujuh",
+    "Tunggu",
+    "Terima Kasih",
+    "Tengok",
+    "Tidak",
+    "Idle"
+  ],
+  "action_to_index": {
+    "Sama-sama": 0,
+    "Sekolah": 1,
+    "Ada": 2,
+    "Duduk": 3,
+    "Maaf": 4,
+    "Gembira": 5,
+    "Curi": 6,
+    "Rumah": 7,
+    "Demam": 8,
+    "Dia": 9,
+    "Apa Khabar": 10,
+    "Dua": 11,
+    "Hari ini": 12,
+    "Ibu": 13,
+    "Kita": 14,
+    "Klinik": 15,
+    "Benda": 16,
+    "Lima": 17,
+    "Doktor": 18,
+    "Bila": 19,
+    "Pergi": 20,
+    "Salah": 21,
+    "Berhenti": 22,
+    "Hilang": 23,
+    "Pagi": 24,
+    "Apa": 25,
+    "Bayar": 26,
+    "Esok": 27,
+    "Isteri": 28,
+    "Enam": 29,
+    "Empat": 30,
+    "Anak": 31,
+    "Berapa": 32,
+    "Betul": 33,
+    "Selamat Malam": 34,
+    "Kami": 35,
+    "Kerja": 36,
+    "Balik": 37,
+    "Sekarang": 38,
+    "Belajar": 39,
+    "Awak": 40,
+    "Boleh": 41,
+    "Minum": 42,
+    "Sihat": 43,
+    "Malam": 44,
+    "Saya": 45,
+    "Ayah": 46,
+    "Abang": 47,
+    "Bangun": 48,
+    "Dahaga": 49,
+    "Masjid": 50,
+    "Kakak": 51,
+    "Beli": 52,
+    "Polis": 53,
+    "Tak tahu": 54,
+    "Faham": 55,
+    "Sakit perut": 56,
+    "Petang": 57,
+    "Kecil": 58,
+    "Mahu": 59,
+    "Satu": 60,
+    "Hospital": 61,
+    "Khabar Baik": 62,
+    "Hello": 63,
+    "Kawan": 64,
+    "Cantik": 65,
+    "Sedih": 66,
+    "Mengapa": 67,
+    "Makan": 68,
+    "Sedap": 69,
+    "Kedai": 70,
+    "Sakit": 71,
+    "Marah": 72,
+    "Lapan": 73,
+    "Mana": 74,
+    "Baik": 75,
+    "Waalaikumussalam": 76,
+    "Semalam": 77,
+    "Tidak boleh": 78,
+    "Tandas": 79,
+    "Tiga": 80,
+    "Tahu": 81,
+    "Sepuluh": 82,
+    "Siapa": 83,
+    "Selamat Pagi": 84,
+    "Tidur": 85,
+    "Tolong": 86,
+    "Ya": 87,
+    "Suami": 88,
+    "Tidak ada": 89,
+    "Sembilan": 90,
+    "Suka": 91,
+    "Tujuh": 92,
+    "Tunggu": 93,
+    "Terima Kasih": 94,
+    "Tengok": 95,
+    "Tidak": 96,
+    "Idle": 97
+  },
+  "index_to_action": {
+    "0": "Sama-sama",
+    "1": "Sekolah",
+    "2": "Ada",
+    "3": "Duduk",
+    "4": "Maaf",
+    "5": "Gembira",
+    "6": "Curi",
+    "7": "Rumah",
+    "8": "Demam",
+    "9": "Dia",
+    "10": "Apa Khabar",
+    "11": "Dua",
+    "12": "Hari ini",
+    "13": "Ibu",
+    "14": "Kita",
+    "15": "Klinik",
+    "16": "Benda",
+    "17": "Lima",
+    "18": "Doktor",
+    "19": "Bila",
+    "20": "Pergi",
+    "21": "Salah",
+    "22": "Berhenti",
+    "23": "Hilang",
+    "24": "Pagi",
+    "25": "Apa",
+    "26": "Bayar",
+    "27": "Esok",
+    "28": "Isteri",
+    "29": "Enam",
+    "30": "Empat",
+    "31": "Anak",
+    "32": "Berapa",
+    "33": "Betul",
+    "34": "Selamat Malam",
+    "35": "Kami",
+    "36": "Kerja",
+    "37": "Balik",
+    "38": "Sekarang",
+    "39": "Belajar",
+    "40": "Awak",
+    "41": "Boleh",
+    "42": "Minum",
+    "43": "Sihat",
+    "44": "Malam",
+    "45": "Saya",
+    "46": "Ayah",
+    "47": "Abang",
+    "48": "Bangun",
+    "49": "Dahaga",
+    "50": "Masjid",
+    "51": "Kakak",
+    "52": "Beli",
+    "53": "Polis",
+    "54": "Tak tahu",
+    "55": "Faham",
+    "56": "Sakit perut",
+    "57": "Petang",
+    "58": "Kecil",
+    "59": "Mahu",
+    "60": "Satu",
+    "61": "Hospital",
+    "62": "Khabar Baik",
+    "63": "Hello",
+    "64": "Kawan",
+    "65": "Cantik",
+    "66": "Sedih",
+    "67": "Mengapa",
+    "68": "Makan",
+    "69": "Sedap",
+    "70": "Kedai",
+    "71": "Sakit",
+    "72": "Marah",
+    "73": "Lapan",
+    "74": "Mana",
+    "75": "Baik",
+    "76": "Waalaikumussalam",
+    "77": "Semalam",
+    "78": "Tidak boleh",
+    "79": "Tandas",
+    "80": "Tiga",
+    "81": "Tahu",
+    "82": "Sepuluh",
+    "83": "Siapa",
+    "84": "Selamat Pagi",
+    "85": "Tidur",
+    "86": "Tolong",
+    "87": "Ya",
+    "88": "Suami",
+    "89": "Tidak ada",
+    "90": "Sembilan",
+    "91": "Suka",
+    "92": "Tujuh",
+    "93": "Tunggu",
+    "94": "Terima Kasih",
+    "95": "Tengok",
+    "96": "Tidak",
+    "97": "Idle"
+  },
+  "translations": {
+    "Sama-sama": {
+      "en": "You're welcome",
+      "zh": "不客气",
+      "ta": "பரவாயில்லை"
+    },
+    "Sekolah": {
+      "en": "School",
+      "zh": "学校",
+      "ta": "பள்ளி"
+    },
+    "Ada": {
+      "en": "Have",
+      "zh": "有",
+      "ta": "இருக்கிறது"
+    },
+    "Duduk": {
+      "en": "Sit",
+      "zh": "坐",
+      "ta": "உட்கார்"
+    },
+    "Maaf": {
+      "en": "Sorry",
+      "zh": "对不起",
+      "ta": "மன்னிக்கவும்"
+    },
+    "Gembira": {
+      "en": "Happy",
+      "zh": "开心",
+      "ta": "சந்தோஷம்"
+    },
+    "Curi": {
+      "en": "Steal",
+      "zh": "偷",
+      "ta": "திருடு"
+    },
+    "Rumah": {
+      "en": "House",
+      "zh": "家",
+      "ta": "வீடு"
+    },
+    "Demam": {
+      "en": "Fever",
+      "zh": "发烧",
+      "ta": "காய்ச்சல்"
+    },
+    "Dia": {
+      "en": "He / She",
+      "zh": "他/她",
+      "ta": "அவர்"
+    },
+    "Apa Khabar": {
+      "en": "How are you",
+      "zh": "你好吗",
+      "ta": "எப்படி இருக்கிறீர்கள்"
+    },
+    "Dua": {
+      "en": "Two",
+      "zh": "二",
+      "ta": "இரண்டு"
+    },
+    "Hari ini": {
+      "en": "Today",
+      "zh": "今天",
+      "ta": "இன்று"
+    },
+    "Ibu": {
+      "en": "Mother",
+      "zh": "妈妈",
+      "ta": "அம்மா"
+    },
+    "Kita": {
+      "en": "We",
+      "zh": "咱们",
+      "ta": "நாம்"
+    },
+    "Klinik": {
+      "en": "Clinic",
+      "zh": "诊所",
+      "ta": "கிளினிக்"
+    },
+    "Benda": {
+      "en": "Thing",
+      "zh": "东西",
+      "ta": "பொருள்"
+    },
+    "Lima": {
+      "en": "Five",
+      "zh": "五",
+      "ta": "ஐந்து"
+    },
+    "Doktor": {
+      "en": "Doctor",
+      "zh": "医生",
+      "ta": "மருத்துவர்"
+    },
+    "Bila": {
+      "en": "When",
+      "zh": "什么时候",
+      "ta": "எப்போது"
+    },
+    "Pergi": {
+      "en": "Go",
+      "zh": "去",
+      "ta": "போ"
+    },
+    "Salah": {
+      "en": "Wrong",
+      "zh": "错",
+      "ta": "தவறு"
+    },
+    "Berhenti": {
+      "en": "Stop",
+      "zh": "停",
+      "ta": "நிறுத்து"
+    },
+    "Hilang": {
+      "en": "Lost",
+      "zh": "丢失",
+      "ta": "தொலைந்தது"
+    },
+    "Pagi": {
+      "en": "Morning",
+      "zh": "早上",
+      "ta": "காலை"
+    },
+    "Apa": {
+      "en": "What",
+      "zh": "什么",
+      "ta": "என்ன"
+    },
+    "Bayar": {
+      "en": "Pay",
+      "zh": "付钱",
+      "ta": "பணம் செலுத்து"
+    },
+    "Esok": {
+      "en": "Tomorrow",
+      "zh": "明天",
+      "ta": "நாளை"
+    },
+    "Isteri": {
+      "en": "Wife",
+      "zh": "妻子",
+      "ta": "மனைவி"
+    },
+    "Enam": {
+      "en": "Six",
+      "zh": "六",
+      "ta": "ஆறு"
+    },
+    "Empat": {
+      "en": "Four",
+      "zh": "四",
+      "ta": "நான்கு"
+    },
+    "Anak": {
+      "en": "Child",
+      "zh": "孩子",
+      "ta": "குழந்தை"
+    },
+    "Berapa": {
+      "en": "How much / many",
+      "zh": "多少",
+      "ta": "எத்தனை"
+    },
+    "Betul": {
+      "en": "Correct",
+      "zh": "对",
+      "ta": "சரி"
+    },
+    "Selamat Malam": {
+      "en": "Good night",
+      "zh": "晚安",
+      "ta": "இனிய இரவு"
+    },
+    "Kami": {
+      "en": "We",
+      "zh": "我们",
+      "ta": "நாங்கள்"
+    },
+    "Kerja": {
+      "en": "Work",
+      "zh": "工作",
+      "ta": "வேலை"
+    },
+    "Balik": {
+      "en": "Return",
+      "zh": "回",
+      "ta": "திரும்பு"
+    },
+    "Sekarang": {
+      "en": "Now",
+      "zh": "现在",
+      "ta": "இப்போது"
+    },
+    "Belajar": {
+      "en": "Learn",
+      "zh": "学习",
+      "ta": "படி"
+    },
+    "Awak": {
+      "en": "You",
+      "zh": "你",
+      "ta": "நீங்கள்"
+    },
+    "Boleh": {
+      "en": "Can",
+      "zh": "可以",
+      "ta": "முடியும்"
+    },
+    "Minum": {
+      "en": "Drink",
+      "zh": "喝",
+      "ta": "குடி"
+    },
+    "Sihat": {
+      "en": "Healthy",
+      "zh": "健康",
+      "ta": "ஆரோக்கியம்"
+    },
+    "Malam": {
+      "en": "Night",
+      "zh": "晚上",
+      "ta": "இரவு"
+    },
+    "Saya": {
+      "en": "I / Me",
+      "zh": "我",
+      "ta": "நான்"
+    },
+    "Ayah": {
+      "en": "Father",
+      "zh": "爸爸",
+      "ta": "அப்பா"
+    },
+    "Abang": {
+      "en": "Older brother",
+      "zh": "哥哥",
+      "ta": "அண்ணன்"
+    },
+    "Bangun": {
+      "en": "Wake up",
+      "zh": "起床",
+      "ta": "எழுந்திரு"
+    },
+    "Dahaga": {
+      "en": "Thirsty",
+      "zh": "口渴",
+      "ta": "தாகம்"
+    },
+    "Masjid": {
+      "en": "Mosque",
+      "zh": "清真寺",
+      "ta": "பள்ளிவாசல்"
+    },
+    "Kakak": {
+      "en": "Older sister",
+      "zh": "姐姐",
+      "ta": "அக்கா"
+    },
+    "Beli": {
+      "en": "Buy",
+      "zh": "买",
+      "ta": "வாங்கு"
+    },
+    "Polis": {
+      "en": "Police",
+      "zh": "警察",
+      "ta": "காவல்துறை"
+    },
+    "Tak tahu": {
+      "en": "Don't know",
+      "zh": "不知道",
+      "ta": "தெரியாது"
+    },
+    "Faham": {
+      "en": "Understand",
+      "zh": "明白",
+      "ta": "புரிகிறது"
+    },
+    "Sakit perut": {
+      "en": "Stomachache",
+      "zh": "肚子痛",
+      "ta": "வயிற்று வலி"
+    },
+    "Petang": {
+      "en": "Afternoon",
+      "zh": "下午",
+      "ta": "மாலை"
+    },
+    "Kecil": {
+      "en": "Small",
+      "zh": "小",
+      "ta": "சிறிய"
+    },
+    "Mahu": {
+      "en": "Want",
+      "zh": "要",
+      "ta": "வேண்டும்"
+    },
+    "Satu": {
+      "en": "One",
+      "zh": "一",
+      "ta": "ஒன்று"
+    },
+    "Hospital": {
+      "en": "Hospital",
+      "zh": "医院",
+      "ta": "மருத்துவமனை"
+    },
+    "Khabar Baik": {
+      "en": "I'm fine",
+      "zh": "我很好",
+      "ta": "நலமாக இருக்கிறேன்"
+    },
+    "Hello": {
+      "en": "Hello",
+      "zh": "你好",
+      "ta": "வணக்கம்"
+    },
+    "Kawan": {
+      "en": "Friend",
+      "zh": "朋友",
+      "ta": "நண்பர்"
+    },
+    "Cantik": {
+      "en": "Beautiful",
+      "zh": "漂亮",
+      "ta": "அழகு"
+    },
+    "Sedih": {
+      "en": "Sad",
+      "zh": "伤心",
+      "ta": "வருத்தம்"
+    },
+    "Mengapa": {
+      "en": "Why",
+      "zh": "为什么",
+      "ta": "ஏன்"
+    },
+    "Makan": {
+      "en": "Eat",
+      "zh": "吃",
+      "ta": "சாப்பிடு"
+    },
+    "Sedap": {
+      "en": "Delicious",
+      "zh": "好吃",
+      "ta": "சுவையான"
+    },
+    "Kedai": {
+      "en": "Shop",
+      "zh": "商店",
+      "ta": "கடை"
+    },
+    "Sakit": {
+      "en": "Sick / Hurt",
+      "zh": "痛",
+      "ta": "வலி"
+    },
+    "Marah": {
+      "en": "Angry",
+      "zh": "生气",
+      "ta": "கோபம்"
+    },
+    "Lapan": {
+      "en": "Eight",
+      "zh": "八",
+      "ta": "எட்டு"
+    },
+    "Mana": {
+      "en": "Where",
+      "zh": "哪里",
+      "ta": "எங்கே"
+    },
+    "Baik": {
+      "en": "Good",
+      "zh": "好",
+      "ta": "நல்ல"
+    },
+    "Waalaikumussalam": {
+      "en": "Waalaikumussalam (and peace be upon you)",
+      "zh": "也愿你平安",
+      "ta": "உங்களுக்கும் சாந்தி"
+    },
+    "Semalam": {
+      "en": "Yesterday",
+      "zh": "昨天",
+      "ta": "நேற்று"
+    },
+    "Tidak boleh": {
+      "en": "Cannot",
+      "zh": "不可以",
+      "ta": "முடியாது"
+    },
+    "Tandas": {
+      "en": "Toilet",
+      "zh": "厕所",
+      "ta": "கழிப்பறை"
+    },
+    "Tiga": {
+      "en": "Three",
+      "zh": "三",
+      "ta": "மூன்று"
+    },
+    "Tahu": {
+      "en": "Know",
+      "zh": "知道",
+      "ta": "தெரியும்"
+    },
+    "Sepuluh": {
+      "en": "Ten",
+      "zh": "十",
+      "ta": "பத்து"
+    },
+    "Siapa": {
+      "en": "Who",
+      "zh": "谁",
+      "ta": "யார்"
+    },
+    "Selamat Pagi": {
+      "en": "Good morning",
+      "zh": "早安",
+      "ta": "காலை வணக்கம்"
+    },
+    "Tidur": {
+      "en": "Sleep",
+      "zh": "睡觉",
+      "ta": "தூங்கு"
+    },
+    "Tolong": {
+      "en": "Help",
+      "zh": "帮忙",
+      "ta": "உதவி"
+    },
+    "Ya": {
+      "en": "Yes",
+      "zh": "是",
+      "ta": "ஆம்"
+    },
+    "Suami": {
+      "en": "Husband",
+      "zh": "丈夫",
+      "ta": "கணவர்"
+    },
+    "Tidak ada": {
+      "en": "Do not have / None",
+      "zh": "没有",
+      "ta": "கிடையாது"
+    },
+    "Sembilan": {
+      "en": "Nine",
+      "zh": "九",
+      "ta": "ஒன்பது"
+    },
+    "Suka": {
+      "en": "Like",
+      "zh": "喜欢",
+      "ta": "பிடிக்கும்"
+    },
+    "Tujuh": {
+      "en": "Seven",
+      "zh": "七",
+      "ta": "ஏழு"
+    },
+    "Tunggu": {
+      "en": "Wait",
+      "zh": "等",
+      "ta": "காத்திரு"
+    },
+    "Terima Kasih": {
+      "en": "Thank you",
+      "zh": "谢谢",
+      "ta": "நன்றி"
+    },
+    "Tengok": {
+      "en": "Look / See",
+      "zh": "看",
+      "ta": "பார்"
+    },
+    "Tidak": {
+      "en": "No / Not",
+      "zh": "不",
+      "ta": "இல்லை"
+    },
+    "Idle": {
+      "en": "Idle",
+      "zh": "待机",
+      "ta": "காத்திருப்பு"
+    }
+  },
+  "num_classes": 98,
+  "sequence_length": 30,
+  "num_features": 780,
+  "num_raw_features": 258,
+  "model_version": "V3.1.6",
+  "scaler_baked_in": true,
+  "multi_speed_trained": true,
+  "speed_tiers": [
+    "1x",
+    "1.5x",
+    "2x"
+  ],
+  "idle_prefix_augmented": false,
+  "zscore_fitted_on": "1x_speed_only",
+  "architecture": "2x BiLSTM-128 + Dot Attention",
+  "processing_pipeline": {
+    "stages": [
+      "Stage 1: Anchor subtraction (pose→shoulder midpoint, hands→wrist)",
+      "Stage 2: Scale by shoulder width",
+      "Stage 3: Velocity (1st derivative, +258 → 516)",
+      "Stage 4: Acceleration (2nd derivative, +258 → 774)",
+      "Stage 5: Engineered features (+6 → 780)",
+      "Stage 6: Z-score (BAKED INTO MODEL ─ no external scaler needed!)"
+    ],
+    "note": "Apply stages 1-5 externally. Stage 6 is inside the TFLite model.",
+    "input_to_model": "(1, 30, 780) float32 ─ stages 1-5 applied, NO z-score needed",
+    "training_pipeline_order": "Split → Speed variants → Stages 1-5 → Augment → Z-score (fitted on 1× only)"
+  }
+}

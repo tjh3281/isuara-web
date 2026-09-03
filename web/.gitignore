@@ -1,0 +1,32 @@
+# Secrets. Broad on purpose: it must catch .env.local, .env.production and any
+# stray copy anywhere under web/, not just the one path we expect. The example
+# file is re-included below because it holds names only, never values.
+#
+# The frontend must NEVER hold an API key: Vite compiles anything prefixed with
+# VITE_ straight into the public browser bundle. Keys live in backend/.env only.
+.env
+.env.*
+!.env.example
+
+# Backend. The venv must be Python 3.9-3.12 (TF 2.19 supports no higher) —
+# see requirements.txt. Extra names are ignored too so a second environment
+# built for version testing never gets committed.
+backend/.venv/
+backend/.venv[0-9]*/
+backend/.venv-*/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/tools/tflite_tensors.txt
+backend/models/*.onnx
+
+# Model artifacts exported from the training notebook. Large, and not part of
+# the Android build — see web/README.md for where to get them.
+backend/models/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/tsconfig.tsbuildinfo
+
+# Copied from node_modules by scripts/copy-wasm.mjs at dev/build time.
+frontend/public/wasm/
