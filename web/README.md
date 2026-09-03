@@ -165,8 +165,17 @@ docker build -f web/backend/Dockerfile -t isuara-api .
 ```
 
 `render.yaml` is a ready blueprint for Render; the same image runs on Fly,
-Railway or anything else that takes a container. Set these in the host's
-environment:
+Railway or anything else that takes a container.
+
+For a host that needs no GitHub access at all, `spaces/build-space.ps1`
+assembles a Hugging Face Space from this tree and `spaces/README.md` is its
+card. Copies the API and the two files it reads, nothing else — a Space must be
+public for a browser to reach it. The directory layout inside the Space matches
+this repository on purpose: config.py finds the model by walking up from its own
+location, so `web/backend/app` and `app/src/main/assets` have to sit where they
+sit here, which also means the Dockerfile works unchanged.
+
+Set these in the host's environment:
 
 | Variable | Value |
 |---|---|
