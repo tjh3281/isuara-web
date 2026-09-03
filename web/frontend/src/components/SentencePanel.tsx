@@ -10,7 +10,8 @@
 
 import { glossIn, type LabelMap } from '../lib/labelMap'
 import { forLanguage, isSecondary, type LanguageDef, type Translation } from '../lib/language'
-import { STAGE_LABELS, type TranslationStage } from '../lib/translateClient'
+import { STAGE_LABELS, type DebateProgress } from '../lib/translateClient'
+import { DebateAccordion } from './DebateAccordion'
 import type { PredictionState } from '../lib/signPredictor'
 
 interface Props {
@@ -19,7 +20,7 @@ interface Props {
   language: LanguageDef
   translation: Translation | null
   isTranslating: boolean
-  stage: TranslationStage
+  progress: DebateProgress
 }
 
 export function SentencePanel({
@@ -28,7 +29,7 @@ export function SentencePanel({
   language,
   translation,
   isTranslating,
-  stage,
+  progress,
 }: Props) {
   const secondaryWord = glossIn(labelMap, state.currentWord, language)
   const sentence = state.sentence.join(' ')
@@ -71,22 +72,27 @@ export function SentencePanel({
 
         {(isTranslating || translation) && (
           <div className="card__result">
-            {isTranslating ? (
+            {isTranslating && progress.candidates.length === 0 ? (
+              // Before the slots are announced there is nothing to expand, so
+              // show the plain stage line rather than an empty accordion.
               <p className="card__stage">
                 <span className="spinner" aria-hidden="true" />
-                {STAGE_LABELS[stage] || 'Refining grammar…'}
+                {STAGE_LABELS[progress.stage] || 'Refining grammar…'}
               </p>
             ) : (
-              translation && (
-                <>
-                  <p className="card__translation">{translation.ms}</p>
-                  {isSecondary(language) && (
-                    <p className="card__translation-secondary">
-                      {forLanguage(translation, language)}
-                    </p>
-                  )}
-                </>
-              )
+              <>
+                {translation && (
+                  <>
+                    <p className="card__translation">{translation.ms}</p>
+                    {isSecondary(language) && (
+                      <p className="card__translation-secondary">
+                        {forLanguage(translation, language)}
+                      </p>
+                    )}
+                  </>
+                )}
+                <DebateAccordion progress={progress} active={isTranslating} />
+              </>
             )}
           </div>
         )}

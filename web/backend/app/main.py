@@ -160,13 +160,12 @@ async def translate(request: TranslateRequest) -> StreamingResponse:
     async def stream():
         try:
             emotion = request.emotion.model_dump() if request.emotion else None
-            async for stage, result in translator.debate(request.words, emotion):
-                if result is None:
-                    yield json.dumps(
-                        {"stage": stage, "label": translator.STAGE_LABELS[stage]}
-                    ) + "\n"
-                else:
-                    yield json.dumps({"translation": result}) + "\n"
+            async for event in translator.debate(request.words, emotion):
+                # A stage event carries its display label so the client does not
+                # keep a second copy of the wording.
+                if "stage" in event:
+                    event = {**event, "label": translator.STAGE_LABELS[event["stage"]]}
+                yield json.dumps(event) + "\n"
         except Exception as e:
             log.exception("translate failed")
             yield json.dumps({"error": str(e)}) + "\n"

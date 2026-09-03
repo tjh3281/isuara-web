@@ -33,7 +33,11 @@ import {
   type Translation,
 } from './lib/language'
 import { TtsService } from './lib/tts'
-import { translate as runTranslate, type TranslationStage } from './lib/translateClient'
+import {
+  IDLE_PROGRESS,
+  translate as runTranslate,
+  type DebateProgress,
+} from './lib/translateClient'
 
 /** How long the signer must hold still before the sentence is considered done. */
 const AUTO_TRANSLATE_DELAY_MS = 2000
@@ -49,7 +53,7 @@ export default function App() {
   const [languageCode, setLanguageCode] = useState<LanguageCode>(loadLanguage)
   const [translation, setTranslation] = useState<Translation | null>(null)
   const [isTranslating, setIsTranslating] = useState(false)
-  const [stage, setStage] = useState<TranslationStage>('IDLE')
+  const [progress, setProgress] = useState<DebateProgress>(IDLE_PROGRESS)
   const [showLandmarks, setShowLandmarks] = useState(false)
   const [tab, setTab] = useState<Tab>('camera')
 
@@ -87,7 +91,7 @@ export default function App() {
 
       const rawSentence = words.join(' ')
       try {
-        const result = await runTranslate(words, setStage)
+        const result = await runTranslate(words, setProgress)
         setTranslation(result)
         if (speak) tts.speakTranslation(result, language)
       } catch (e) {
@@ -98,7 +102,9 @@ export default function App() {
         if (speak) tts.speak(rawSentence, LANGUAGES.MALAY)
       } finally {
         setIsTranslating(false)
-        setStage('IDLE')
+        // The candidates stay on screen after the run so the accordion can still
+        // be opened to see who said what; only the stage returns to idle.
+        setProgress((p) => ({ ...p, stage: 'IDLE' }))
       }
     },
     [isTranslating, language, predictor, tts],
@@ -149,7 +155,7 @@ export default function App() {
     predictor.resetAll()
     setTranslation(null)
     setIsTranslating(false)
-    setStage('IDLE')
+    setProgress(IDLE_PROGRESS)
     tts.stop()
   }
 
@@ -207,7 +213,7 @@ export default function App() {
             language={language}
             translation={translation}
             isTranslating={isTranslating}
-            stage={stage}
+            progress={progress}
           />
           <ControlBar
             language={language}

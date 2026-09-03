@@ -184,9 +184,14 @@ async def _agent(
 _judge_slot = itertools.count()
 
 
-async def _judge(words: list[str], candidates: list[dict[str, str | None]]) -> int:
+async def _judge(
+    words: list[str], candidates: list[dict[str, str | None]]
+) -> tuple[int, str]:
     """
-    Returns the index of the winning candidate.
+    Returns the winning candidate's index and the judge's stated reason.
+
+    The reason is surfaced in the UI rather than only logged — it is what makes
+    the accordion's verdict row meaningful instead of an unexplained pick.
 
     The judge rotates round-robin across the keys: there are four calls per
     translation but only three keys, so pinning the judge to one would make that
@@ -199,46 +204,83 @@ async def _judge(words: list[str], candidates: list[dict[str, str | None]]) -> i
     )
     choice, reason = parsing.extract_choice(raw, len(candidates))
     log.info('judge chose [%d] "%s" — %s', choice, candidates[choice]["ms"], reason)
-    return choice
+    return choice, reason
 
 
-async def debate(
-    words: list[str], emotion: dict | None = None
-) -> AsyncIterator[tuple[str, dict[str, str | None] | None]]:
+async def debate(words: list[str], emotion: dict | None = None) -> AsyncIterator[dict]:
     """
-    Runs the debate, yielding `(stage, result)` as it goes.
+    Runs the debate, streaming events as they happen.
 
-    A generator rather than a plain coroutine because the Android UI collects a
-    StateFlow of the pipeline stage and shows it while the user waits; streaming
-    the stages to the browser is how that same feedback survives the port. Every
-    yield before the last carries `None` — only the final one carries the
-    translation.
+    Events, mirroring DebateProgress.kt:
+      {"stage": ...}                     pipeline stage changed
+      {"candidate": {index, model, sentence?, failed}}   one agent resolved
+      {"verdict": {choice, reason}}      the judge decided
+      {"translation": {...}}             the final answer
 
-    Agent i draws on key slot i, so the three agents consume three separate
-    free-tier quota buckets rather than competing for one.
+    Agents are revealed **as they arrive** rather than after the slowest
+    finishes. The Kotlin notes a measured spread of ~9s to ~126s across its three
+    models, so batching the reveal would mean minutes of dead air — which is the
+    whole reason DebateProgress exists alongside the flat stage enum.
+
+    Agent i draws on key slot i, so the three consume three separate free-tier
+    quota buckets rather than competing for one.
     """
     if not words:
         raise ValueError("no glosses to translate")
 
-    yield "CONSULTING", None
+    yield {"stage": "CONSULTING"}
 
-    # Agent i draws on key slot i, so the three consume three separate free-tier
-    # quota buckets rather than competing for one.
-    settled = await asyncio.gather(
-        *(
-            _agent(words, clients.slot_of(i), model, emotion)
+    # Announce the slots up front so the UI can lay out all three rows as
+    # pending, then fill each in when its model answers.
+    yield {
+        "candidates": [
+            {"index": i, "model": model, "sentence": None, "failed": False}
             for i, model in enumerate(AGENT_MODELS)
-        ),
-        return_exceptions=True,
-    )
+        ]
+    }
 
-    candidates: list[dict[str, str | None]] = []
-    for i, outcome in enumerate(settled):
-        if isinstance(outcome, BaseException):
-            log.warning("interpreter[%d] (%s) failed: %s", i, AGENT_MODELS[i], outcome)
-        else:
-            candidates.append(outcome)
-            log.info("candidate[%d] (%s): %s", i, AGENT_MODELS[i], outcome["ms"])
+    async def run(index: int) -> tuple[int, dict[str, str | None] | None, Exception | None]:
+        """
+        Wraps an agent so completion carries its own index.
+
+        asyncio.as_completed yields results in finishing order and gives no way
+        back to the task that produced them, so the index rides along rather
+        than being reconstructed afterwards.
+        """
+        try:
+            return index, await _agent(words, clients.slot_of(index), AGENT_MODELS[index], emotion), None
+        except Exception as e:  # noqa: BLE001 — reported per-agent, never fatal
+            return index, None, e
+
+    tasks = [asyncio.create_task(run(i)) for i in range(len(AGENT_MODELS))]
+
+    # Keyed by index so the judge sees candidates in a stable order regardless
+    # of which model happened to answer first.
+    resolved: dict[int, dict[str, str | None]] = {}
+
+    for finished in asyncio.as_completed(tasks):
+        index, translation, error = await finished
+        model = AGENT_MODELS[index]
+
+        if error is not None or translation is None:
+            log.warning("interpreter[%d] (%s) failed: %s", index, model, error)
+            yield {
+                "candidate": {"index": index, "model": model, "sentence": None, "failed": True}
+            }
+            continue
+
+        resolved[index] = translation
+        log.info("candidate[%d] (%s): %s", index, model, translation["ms"])
+        yield {
+            "candidate": {
+                "index": index,
+                "model": model,
+                "sentence": translation["ms"],
+                "failed": False,
+            }
+        }
+
+    candidates = [resolved[i] for i in sorted(resolved)]
 
     if not candidates:
         raise RuntimeError(f"all {len(AGENT_MODELS)} interpreters failed")
@@ -246,22 +288,25 @@ async def debate(
     # Nothing to choose between — skip the judge and its latency.
     if len(candidates) == 1:
         log.info("only one interpreter succeeded, returning it unjudged")
-        yield "IDLE", candidates[0]
+        yield {"stage": "IDLE"}
+        yield {"translation": candidates[0]}
         return
 
-    yield "COLLECTED", None
+    yield {"stage": "COLLECTED"}
     await asyncio.sleep(_STAGE_HOLD_S)
-    yield "JUDGING", None
-    await asyncio.sleep(_STAGE_HOLD_S)
+    yield {"stage": "JUDGING"}
 
     # A failed judge must not discard candidates we already hold; an arbitrary
     # but valid answer beats falling back to raw glosses.
+    reason = ""
     try:
-        chosen = await _judge(words, candidates)
+        chosen, reason = await _judge(words, candidates)
     except Exception as e:
         log.warning("judge failed, using first candidate: %s", e)
         chosen = 0
 
-    yield "DECIDING", None
+    yield {"verdict": {"choice": chosen, "reason": reason}}
+    yield {"stage": "DECIDING"}
     await asyncio.sleep(_STAGE_HOLD_S)
-    yield "IDLE", candidates[chosen]
+    yield {"stage": "IDLE"}
+    yield {"translation": candidates[chosen]}

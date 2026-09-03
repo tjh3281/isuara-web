@@ -504,6 +504,115 @@ body {
   font-weight: 700;
 }
 
+/* ── debate accordion ── */
+
+.debate {
+  width: 100%;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.debate__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.debate__summary {
+  flex: 1;
+  text-align: left;
+}
+
+.debate__chevron {
+  display: grid;
+  place-items: center;
+  transition: transform 160ms ease;
+}
+
+.debate__chevron--open {
+  transform: rotate(180deg);
+}
+
+.debate__body {
+  padding-top: 6px;
+}
+
+.debate__agents {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.debate__agent {
+  padding: 8px 10px;
+  border-left: 2px solid var(--divider);
+  background: rgb(255 255 255 / 0.04);
+  border-radius: 0 8px 8px 0;
+}
+
+/* The winner is marked so the judge's pick is visible at a glance. */
+.debate__agent--chosen {
+  border-left-color: var(--confident);
+  background: rgb(76 175 80 / 0.08);
+}
+
+.debate__model {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+}
+
+.debate__sentence {
+  display: block;
+  margin-top: 2px;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.debate__pending,
+.debate__failed {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--text-empty);
+}
+
+.debate__failed {
+  color: var(--unsure);
+}
+
+.debate__verdict {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.debate__verdict strong {
+  color: var(--confident);
+}
+
+.debate__note {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  color: var(--text-empty);
+}
+
 /* ── bottom navigation (MainActivity.kt NavigationBar) ── */
 
 .nav {
