@@ -191,49 +191,7 @@ export default function App() {
         the sentence buffer on every tab switch, and tearing down the avatar tab
         would discard the WebGL context and the loaded clips.
       */}
-      <div className="screen" hidden={tab !== 'camera'}>
-        {/*
-          No counterpart on the phone — the app cannot reach a state where the
-          model is missing. Disappears entirely once the backend loads it.
-        */}
-        {health?.modelError && (
-          <div className="notice">
-            <strong>Sign recognition unavailable.</strong> Camera, tracking,
-            translation and speech still work.
-            <details>
-              <summary>Why</summary>
-              <pre>{health.modelError}</pre>
-            </details>
-          </div>
-        )}
-
-        {/*
-          No backend answered the probe, so nothing is classifying the frames.
-          Worth saying out loud: without it the camera runs, the skeleton
-          tracks, the buffer bar fills, and the sentence sits on "Waiting for
-          signs…" forever — which looks exactly like a model that cannot see
-          you, and sent us chasing the wrong thing once already.
-
-          `phase === 'running'` is what distinguishes "probed, nothing there"
-          from "not probed yet"; the probe happens before the phase flips.
-        */}
-        {pipeline.status.phase === 'running' && health === null && (
-          <div className="notice">
-            <strong>No recogniser attached.</strong> Camera, tracking,
-            translation and speech work; signs are not being classified.
-            <details>
-              <summary>Why</summary>
-              <p>
-                Nothing answered <code>/api/health</code>. That is expected on
-                the statically hosted build, which has no backend. Running
-                locally, it means the API server is not up — or the dev server
-                is not proxying to it, which a restart of <code>npm run dev</code>{' '}
-                fixes.
-              </p>
-            </details>
-          </div>
-        )}
-
+      <div className="screen screen--camera" hidden={tab !== 'camera'}>
         <CameraView
           videoRef={pipeline.videoRef}
           keypoints={state.keypoints}
@@ -247,8 +205,27 @@ export default function App() {
           onSwitchCamera={pipeline.switchCamera}
         />
 
-        {/* Column(fillMaxWidth).weight(1f).padding(16.dp) */}
+        {/*
+          Beside the camera on a wide window, beneath it on a narrow one — see
+          .screen--camera. The contents and their sizes are the same either way.
+        */}
         <div className="panel">
+          {/*
+            Only reachable when a backend is present but its model failed to
+            load. The statically hosted build has no backend at all, so it never
+            appears there.
+          */}
+          {health?.modelError && (
+            <div className="notice">
+              <strong>Sign recognition unavailable.</strong> Camera, tracking,
+              translation and speech still work.
+              <details>
+                <summary>Why</summary>
+                <pre>{health.modelError}</pre>
+              </details>
+            </div>
+          )}
+
           <SentencePanel
             state={state}
             labelMap={labelMap}

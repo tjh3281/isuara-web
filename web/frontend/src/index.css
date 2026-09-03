@@ -39,14 +39,13 @@
   --button-h: 56px; /* uniformButtonHeight */
   --gap: 16px; /* the dominant Spacer/padding value */
 
-  /*
-   * Height the rest of the screen keeps for itself; the camera gets whatever is
-   * left. Measured, not guessed: 78px of navigation bar, 198px of panel that
-   * cannot compress (32px padding + 60px word row + 2px confidence bar + 16px
-   * card gap + 56px button row + 32px spacers), and 40px so the sentence card
-   * does not collapse to a hairline.
-   */
-  --below-camera: 316px;
+  /* Width of the side panel once the layout goes two-column. Wide enough for
+     the 56px button row plus the Translate pill at its natural label width. */
+  --panel-w: 380px;
+
+  /* Below this the window is too narrow for a side panel and the layout stacks
+     instead. Matches the media queries further down. */
+  --wide: 900px;
 
   color-scheme: dark;
 }
@@ -94,20 +93,20 @@ body {
 }
 
 /*
- * The app is a phone screen: a full-height Column on black. Capped at a handset
- * width and centred, because the camera box below is portrait 3:4 and would be
- * absurd stretched across a desktop monitor.
+ * A page, not a phone.
  *
- * The width stays fixed even on a browser window shorter than a phone. The
- * camera is what gives way there instead — see `--below-camera` — because the
- * panel below holds text and a row of buttons at the app's real sizes, and
- * scaling the whole column down to fit a short window makes those unreadable
- * and starts clipping the button labels. A smaller preview costs nothing.
+ * The earlier layout was a 480px handset column centred in the window, which is
+ * what parity with the Android build asked for. On a browser it wasted almost
+ * everything: the preview was a stamp in the middle of a wide black field, and
+ * on a short window the fixed 3:4 box did not fit at all.
+ *
+ * So the app fills the viewport and the camera takes whatever the controls do
+ * not. The controls themselves are untouched — same 56px buttons, same pill,
+ * same colours and radii — they are simply arranged to suit the window: beside
+ * the preview when there is width for it, beneath it when there is not.
  */
 .app {
   width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
   height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -138,51 +137,35 @@ body {
   display: none;
 }
 
-/* ── camera: Box(fillMaxWidth).aspectRatio(3f / 4f) ── */
+/* ── camera ── */
 
 /*
- * The slot the preview lives in, and the only part of the layout that gives way
- * on a short window.
- *
- * At 480px wide the 3:4 preview is 640px tall, which is more than many laptop
- * browser windows have. Unclamped it overflowed: the buttons ended up below the
- * bottom of the window and the preview painted straight over the navigation bar,
- * so the avatar tab could not be clicked. The max-height caps it at whatever is
- * left once the panel and the nav have taken theirs.
- *
- * The clamp deliberately squashes *this* box rather than the preview: a definite
- * width plus `aspect-ratio` means max-height clips the height without CSS
- * re-deriving the width, so the ratio would break. `.camera__stage` inside keeps
- * the true 3:4 and this box becomes a black letterbox frame around it. On a
- * window tall enough for the full 640px the two coincide exactly and there is no
- * letterboxing at all.
+ * Takes every pixel the layout has left over, in both directions. There is no
+ * fixed aspect ratio here on purpose: the box is whatever shape the window
+ * leaves, and the picture inside fits itself to it.
  */
 .camera {
   position: relative;
-  width: 100%;
-  aspect-ratio: 3 / 4; /* Compose aspectRatio(w/h) = 0.75 — portrait, not landscape */
-  max-height: calc(100dvh - var(--below-camera));
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
   background: var(--black);
   overflow: hidden;
-  /*
-   * Shrinkable as well as capped. The cap covers the ordinary case; the shrink
-   * covers anything the cap cannot know about in advance — today a notice above
-   * the camera, tomorrow whatever else appears in this column. `.panel` refuses
-   * to shrink, so all of the pressure lands here, and the stage inside keeps the
-   * ratio however far this box is squeezed.
-   */
-  flex: 0 1 auto;
-  min-height: 0;
 }
 
-/* The preview itself, at the app's aspect ratio whatever the frame around it. */
+/*
+ * --pic-x / --pic-y are the black bars left by `contain`, written here from
+ * CameraView every frame. The overlays below inset by them so they sit against
+ * the picture rather than the edge of the stage. They default to 0, which is
+ * both the correct value before the first frame and the right answer whenever
+ * the frame happens to fill the stage exactly.
+ */
 .camera__stage {
-  position: relative;
-  height: 100%;
-  aspect-ratio: 3 / 4;
-  margin: 0 auto;
-  background: var(--dark-gray);
+  position: absolute;
+  inset: 0;
   overflow: hidden;
+  --pic-x: 0px;
+  --pic-y: 0px;
 }
 
 .camera__video,
@@ -193,8 +176,18 @@ body {
   height: 100%;
 }
 
+/*
+ * `contain`, not `cover`.
+ *
+ * The phone cropped the frame to fill a portrait box, which is right on a
+ * handset held upright. Here the box is usually wider than the webcam's own
+ * 4:3, so cropping would throw away the sides of the picture — including the
+ * hands, which is exactly where the signs are. Containing it shows the whole
+ * frame at the largest size that fits, and the overlay reproduces the same
+ * arithmetic so the skeleton stays on the body.
+ */
 .camera__video {
-  object-fit: cover; /* PreviewView.ScaleType.FILL_CENTER */
+  object-fit: contain;
   display: block;
 }
 
@@ -220,10 +213,10 @@ body {
   max-width: 30ch;
 }
 
-/* Row(fillMaxWidth).statusBarsPadding().padding(16.dp) */
+/* Row(fillMaxWidth).statusBarsPadding().padding(16.dp), inset to the picture */
 .camera__hud {
   position: absolute;
-  inset: var(--gap) var(--gap) auto;
+  inset: calc(var(--pic-y) + var(--gap)) calc(var(--pic-x) + var(--gap)) auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -284,10 +277,10 @@ body {
   background: var(--accent); /* Color(0xFF2196F3) when landmarks are on */
 }
 
-/* LinearProgressIndicator(height 4.dp, track Transparent) */
+/* LinearProgressIndicator(height 4.dp, track Transparent), across the picture */
 .camera__buffer {
   position: absolute;
-  inset: auto 0 0;
+  inset: auto var(--pic-x) var(--pic-y);
   height: 4px;
   background: transparent;
 }
@@ -300,16 +293,24 @@ body {
 
 /* ── centre panel: Column(weight(1f)).padding(16.dp) ── */
 
+/*
+ * Stacked layout (narrow window): the panel sits under the preview and takes
+ * only the height its contents need, so the camera keeps the rest. It never
+ * compresses — the word row, the confidence bar and the button row are fixed
+ * sizes, and squeezing those is always the wrong trade.
+ */
 .panel {
-  /* Grows into spare space but never compresses: the word row, the confidence
-     bar and the button row are fixed sizes off the phone, so squeezing them is
-     always the wrong trade. The camera above gives way instead. */
-  flex: 1 0 auto;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: var(--gap);
   min-height: 0;
+  /* Keeps the sentence card from stretching to the full width of a wide window
+     while still in the stacked layout. */
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
 }
 
 /* Box(height = 60.dp) */
@@ -372,7 +373,10 @@ body {
 .card {
   width: 100%;
   flex: 1;
-  min-height: 0;
+  /* In the stacked layout the panel is only as tall as its contents, so without
+     a floor the card collapses to the height of one line of text. It still
+     scrolls internally rather than pushing the buttons off. */
+  min-height: 88px;
   margin-top: var(--gap); /* Spacer(16.dp) */
   padding: var(--gap);
   display: flex;
@@ -933,4 +937,85 @@ body {
   line-height: 1.5;
   white-space: pre-wrap;
   color: var(--text-empty);
+}
+
+/* ── wide window: preview and controls side by side ── */
+
+/*
+ * The only structural change in the whole design, and it is pure arrangement:
+ * every control keeps its size, colour and radius, and simply moves from under
+ * the preview to beside it. Below this width there is not enough room for a
+ * column of controls next to a picture, so the stacked layout above stands.
+ *
+ * The breakpoint is on width alone. A tall narrow window stacks, a short wide
+ * one splits, which is what suits each shape — and the split is what stops a
+ * short window running out of height, since the controls no longer sit below
+ * the preview at all.
+ */
+@media (min-width: 900px) {
+  .screen--camera {
+    flex-direction: row;
+  }
+
+  .panel {
+    /* Fixed column, not a share of the width: the controls are fixed-size, so
+       giving them a proportion of a wide window would only add empty space. */
+    flex: 0 0 var(--panel-w);
+    width: var(--panel-w);
+    max-width: none;
+    margin: 0;
+    min-height: 0;
+    /* Hairline against the preview, so the picture reads as a distinct surface
+       rather than bleeding into the controls. */
+    border-left: 1px solid var(--divider);
+  }
+
+  /* Two tabs each taking half of a 1440px window puts them in opposite corners,
+     miles from anything they relate to. Give them a fixed width and centre the
+     pair; the tabs themselves are unchanged. */
+  .nav {
+    justify-content: center;
+    gap: 24px;
+  }
+
+  .nav__item {
+    flex: 0 0 160px;
+  }
+
+  /* Same reasoning for the avatar's entry field: a text box stretched across a
+     1440px window looks like a mistake, and the send button ends up a screen
+     away from where you are typing. */
+  .avatar__bar {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+}
+
+/* ── narrow window: preview above the controls ── */
+
+@media (max-width: 899px) {
+  /*
+   * Size the camera area to the frame's own shape rather than letting it take
+   * all the leftover height. Width-limited here, so filling the height would
+   * only add black above and below the picture and push the sentence card down
+   * for nothing. Sized this way there are no bars at all, and the height the
+   * camera does not need goes to the card instead.
+   *
+   * --video-aspect comes from CameraView; the 4/3 fallback covers the moment
+   * before the first frame and any camera that never reports a size.
+   */
+  .camera {
+    flex: 0 1 auto;
+    width: 100%;
+    aspect-ratio: var(--video-aspect, 4 / 3);
+  }
+
+  /*
+   * The panel takes the remainder and refuses to shrink, so on a window too
+   * short for both, the camera is what gives way — a smaller picture, never a
+   * clipped button row.
+   */
+  .panel {
+    flex: 1 0 auto;
+  }
 }

@@ -1,11 +1,17 @@
 /**
- * The camera panel — the Box(aspectRatio(3f / 4f)) block of ui/CameraScreen.kt.
+ * The camera panel — the web counterpart of the preview block in
+ * ui/CameraScreen.kt.
  *
- * Geometry, colours and icons are matched to the Compose source rather than
- * chosen: the preview is portrait 3:4 (Compose's aspectRatio takes width/height,
- * so 3f/4f is 0.75 — taller than wide, not landscape), the skeleton uses
- * Compose's fully saturated Color.Green / Color.Magenta / Color.Cyan, and the
- * two HUD buttons are Icons.Default.Settings and Icons.Default.Sync.
+ * The geometry is the page's rather than the phone's: the preview takes the
+ * space the layout gives it and the frame is contained inside at its own aspect
+ * ratio, so it is as large as it can be and nothing is cropped. The phone's
+ * fixed 3:4 portrait box made sense on a handset and only wasted a browser
+ * window, where the webcam is landscape to begin with.
+ *
+ * Colours and icons are still matched to the Compose source rather than chosen:
+ * the skeleton uses Compose's fully saturated Color.Green / Color.Magenta /
+ * Color.Cyan, and the two HUD buttons are Icons.Default.Settings and
+ * Icons.Default.Sync.
  *
  * The preview is mirrored only for a user-facing camera, because that is what
  * looks right to someone signing at their own screen. The frame the model sees
@@ -75,13 +81,52 @@ export function CameraView({
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, width, height)
+
+    /*
+     * Where the picture actually is inside the stage.
+     *
+     * The video is `object-fit: contain`, so it is centred with bars on
+     * whichever axis has room to spare, while the stage covers those bars too.
+     * Two things need this rect. The skeleton, because landmarks are normalized
+     * against the frame rather than the stage — mapping them over the whole
+     * stage would spread them into the bars and sit every dot off the body. And
+     * the HUD and the buffer bar, which are published as CSS variables below so
+     * they hug the picture instead of floating in the black beside it.
+     *
+     * Deliberately computed before the early return: the overlays need it even
+     * with the skeleton switched off.
+     */
+    const video = videoRef.current
+    const vw = video?.videoWidth ?? 0
+    const vh = video?.videoHeight ?? 0
+    let picW = width
+    let picH = height
+    if (vw > 0 && vh > 0) {
+      const scale = Math.min(width / vw, height / vh)
+      picW = vw * scale
+      picH = vh * scale
+    }
+    const picX = (width - picW) / 2
+    const picY = (height - picH) / 2
+
+    const stage = canvas.parentElement
+    if (stage) {
+      stage.style.setProperty('--pic-x', `${picX}px`)
+      stage.style.setProperty('--pic-y', `${picY}px`)
+      // The frame's own shape, for the stacked layout to size the camera area
+      // to it — there is nothing in CSS that can ask the webcam how wide it is.
+      if (vw > 0 && vh > 0) {
+        stage.parentElement?.style.setProperty('--video-aspect', `${vw} / ${vh}`)
+      }
+    }
+
     if (!showLandmarks || !keypoints) return
 
     // Landmarks are normalized against the mirrored ML frame. When the preview
     // is not mirrored, flip x back so the dots land on the visible hands.
-    const mapX = (xNorm: number) => (mirroredPreview ? xNorm : 1 - xNorm) * width
-    const mapY = (yNorm: number) => yNorm * height
-    const radius = Math.max(1.5, width * RADIUS_RATIO)
+    const mapX = (xNorm: number) => picX + (mirroredPreview ? xNorm : 1 - xNorm) * picW
+    const mapY = (yNorm: number) => picY + yNorm * picH
+    const radius = Math.max(1.5, picW * RADIUS_RATIO)
 
     const dot = (x: number, y: number, color: string) => {
       ctx.fillStyle = color
@@ -106,14 +151,12 @@ export function CameraView({
         if (keypoints[idx] > 0) dot(mapX(keypoints[idx]), mapY(keypoints[idx + 1]), color)
       }
     }
-  }, [keypoints, showLandmarks, mirroredPreview])
+  }, [keypoints, showLandmarks, mirroredPreview, videoRef])
 
   return (
-    // .camera is the slot; .camera__stage is the 3:4 preview inside it. The two
-    // are the same box on a window tall enough for the full preview, and the
-    // stage letterboxes within the slot on one that is not. Everything overlaid
-    // belongs to the stage so the HUD and the buffer bar track the picture
-    // rather than floating over the black bars.
+    // .camera is the area the page gives the preview; .camera__stage fills it
+    // and the video is contained within, so the picture is as large as the
+    // space allows and never cropped. Everything overlaid belongs to the stage.
     <div className="camera">
       <div className="camera__stage">
         <video
