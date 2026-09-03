@@ -65,12 +65,32 @@ export function isSecondary(language: LanguageDef): boolean {
   return language.labelMapKey !== null
 }
 
-/** One sentence rendered in every supported language. */
+/**
+ * One sentence rendered in every supported language — mirrors Translator.kt.
+ *
+ * All four languages come back from a single call, so switching the display
+ * language afterwards is instant and costs nothing.
+ */
 export interface Translation {
   ms: string
   en: string
   zh: string
   ta: string
+  /**
+   * The tone the model judged it was rendering, in one English word.
+   *
+   * Optional: a model that ignores the instruction must still produce a usable
+   * translation rather than failing the whole request.
+   */
+  emotion?: string | null
+  /**
+   * A one-sentence English delivery directive for the voice engine.
+   *
+   * English regardless of the spoken language — that is Google's guidance for
+   * Gemini-TTS style prompts, and it keeps the field usable when the display has
+   * been switched to Tamil or Mandarin.
+   */
+  style?: string | null
 }
 
 export function forLanguage(translation: Translation, language: LanguageDef): string {

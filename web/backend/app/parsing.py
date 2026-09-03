@@ -36,18 +36,30 @@ def _parse(raw: str, what: str) -> dict[str, Any]:
     return obj
 
 
-def extract_translation(raw: str) -> dict[str, str]:
+def extract_translation(raw: str) -> dict[str, str | None]:
     """
-    Pulls the four-language translation out of a raw model reply.
+    Pulls the translation out of a raw model reply.
+
+    The four languages are required. `emotion` and `style` are optional and
+    default to None, mirroring Translator.kt: a model that ignores rule 9 must
+    still produce a usable translation rather than failing the whole request.
+    `style` is the delivery directive the voice engine consumes.
 
     Raises ValueError if no complete object is present or any of the four
     languages is missing or blank.
     """
     obj = _parse(raw, "reply")
-    out = {k: str(obj.get(k, "")).strip() for k in ("ms", "en", "zh", "ta")}
+    out: dict[str, str | None] = {
+        k: str(obj.get(k, "")).strip() for k in ("ms", "en", "zh", "ta")
+    }
     if not all(out.values()):
         present = " ".join(f"{k}={bool(v)}" for k, v in out.items())
         raise ValueError(f"missing language in reply: {present}")
+
+    for k in ("emotion", "style"):
+        value = str(obj.get(k, "")).strip()
+        out[k] = value or None
+
     return out
 
 

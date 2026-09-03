@@ -122,8 +122,22 @@ async def predict_socket(websocket: WebSocket) -> None:
 # ─────────────────────────── translation ───────────────────────────
 
 
+class EmotionReading(BaseModel):
+    """
+    The signer's observed facial expression — mirrors emotion/EmotionReading.kt.
+
+    Optional throughout: the expression classifier is a separate model, and a
+    translation must still work when it has not run.
+    """
+
+    descriptor: str
+    confidence: float = 0.0
+    isHighArousal: bool = False  # noqa: N815 — matches the Kotlin field name
+
+
 class TranslateRequest(BaseModel):
     words: list[str] = Field(min_length=1, max_length=16)
+    emotion: EmotionReading | None = None
 
 
 @app.post("/api/translate")
@@ -145,7 +159,8 @@ async def translate(request: TranslateRequest) -> StreamingResponse:
 
     async def stream():
         try:
-            async for stage, result in translator.debate(request.words):
+            emotion = request.emotion.model_dump() if request.emotion else None
+            async for stage, result in translator.debate(request.words, emotion):
                 if result is None:
                     yield json.dumps(
                         {"stage": stage, "label": translator.STAGE_LABELS[stage]}

@@ -85,10 +85,27 @@ class TestPromptParity(unittest.TestCase):
     def test_judge_prompt_is_byte_identical(self):
         self.assertEqual(kotlin_raw_string(read(PROMPTS_KT), "JUDGE"), prompts.JUDGE)
 
-    def test_personas_are_identical(self):
-        kotlin = kotlin_personas(read(PROMPTS_KT))
-        self.assertEqual(len(kotlin), 3, "expected 3 interpretive stances")
-        self.assertEqual(kotlin, prompts.PERSONAS)
+    def test_emotion_confidence_floor_matches(self):
+        m = re.search(r"MIN_EMOTION_CONFIDENCE\s*=\s*([\d.]+)f", read(PROMPTS_KT))
+        assert m, "could not find MIN_EMOTION_CONFIDENCE"
+        self.assertEqual(float(m.group(1)), prompts.MIN_EMOTION_CONFIDENCE)
+
+    def test_user_turn_renders_the_expression_line(self):
+        # The wording is what rule 8 keys on, so it is worth pinning.
+        turn = prompts.user_turn(
+            ["Tolong", "Polis"],
+            {"descriptor": "fear", "confidence": 0.9, "isHighArousal": True},
+        )
+        self.assertIn("Input: [Tolong, Polis]", turn)
+        self.assertIn("Observed facial expression: fear (high arousal)", turn)
+
+    def test_weak_readings_are_dropped_entirely(self):
+        # A hedged hint is worse than no hint: the model cannot tell how much to
+        # discount it, so below the floor the line is omitted rather than softened.
+        turn = prompts.user_turn(
+            ["Tolong"], {"descriptor": "fear", "confidence": 0.2, "isHighArousal": True}
+        )
+        self.assertNotIn("Observed facial expression", turn)
 
 
 class TestConstantParity(unittest.TestCase):
@@ -131,10 +148,36 @@ class TestModelParity(unittest.TestCase):
     accuracy — it is about the two builds not being different models.
     """
 
-    def test_backend_loads_the_same_file_the_app_does(self):
+    def test_model_divergence_from_the_app_is_the_documented_one(self):
+        """
+        The web build deliberately runs a NEWER model than this branch's app.
+
+        `feature/signavatar` loads bim_lstm_v3_int8.tflite, which carries Flex
+        ops. The web build loads bim_lstm_v312_fp16.tflite — the export from the
+        `gonka` branch — because it has none, verified with tools/check_model.py.
+        That is what frees the backend from the TensorFlow 2.17-2.19 window and
+        what would let the model run in the browser instead of here at all.
+
+        Both are (1, 30, 780) -> (1, 98) over the same 98-gloss label map, so
+        this is a swap, not a different pipeline.
+
+        If the app later adopts the fp16 export, this test should collapse back
+        into a plain equality check.
+        """
         m = re.search(r'MODEL_FILE\s*=\s*"([^"]+)"', read(INTERPRETER_KT))
         assert m, "could not find MODEL_FILE in SignInterpreter.kt"
-        self.assertEqual(m.group(1), config.MODEL_FILE.name)
+        android, web = m.group(1), config.MODEL_FILE.name
+
+        if android == web:
+            return  # converged; nothing to justify
+
+        self.assertEqual(
+            web,
+            "bim_lstm_v312_fp16.tflite",
+            "the web build diverges from the app on the model file, and the only "
+            "sanctioned divergence is the Flex-free fp16 export",
+        )
+        self.assertEqual(android, "bim_lstm_v3_int8.tflite")
 
     def test_that_file_exists(self):
         self.assertTrue(config.MODEL_FILE.exists(), f"missing {config.MODEL_FILE}")

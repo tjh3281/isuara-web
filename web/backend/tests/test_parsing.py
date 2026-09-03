@@ -174,18 +174,15 @@ class TestPrompts(unittest.TestCase):
         self.assertIn("0. Polis ke rumah.", turn)
         self.assertIn("1. Polis datang ke rumah kami.", turn)
 
-    def test_with_persona_appends_and_tolerates_none(self):
-        self.assertEqual(prompts.SYSTEM, prompts.with_persona(None))
-        self.assertEqual(prompts.SYSTEM, prompts.with_persona("  "))
-        combined = prompts.with_persona("STANCE: literal.")
-        self.assertTrue(combined.startswith(prompts.SYSTEM))
-        self.assertTrue(combined.endswith("STANCE: literal."))
-
-    def test_there_are_three_distinct_personas(self):
-        # Distinct prompts also guarantee distinct requests, so a provider that
-        # caches by content cannot return one answer three times.
-        self.assertEqual(3, len(prompts.PERSONAS))
-        self.assertEqual(3, len(set(prompts.PERSONAS)))
+    def test_the_system_prompt_asks_for_emotion_and_style(self):
+        # Personas were removed upstream: diversity now comes from using three
+        # different models on one shared prompt, so the prompt must stay a
+        # constant across agents. What it gained instead is the expression
+        # rules and the two extra response fields.
+        self.assertIn('"emotion"', prompts.SYSTEM)
+        self.assertIn('"style"', prompts.SYSTEM)
+        self.assertIn("Observed facial expression", prompts.SYSTEM)
+        self.assertFalse(hasattr(prompts, "PERSONAS"))
 
 
 if __name__ == "__main__":

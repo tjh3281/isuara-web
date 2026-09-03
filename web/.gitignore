@@ -28,5 +28,11 @@ frontend/node_modules/
 frontend/dist/
 frontend/tsconfig.tsbuildinfo
 
-# Copied from node_modules by scripts/copy-wasm.mjs at dev/build time.
+# Everything scripts/copy-assets.mjs generates. These are copies of files that
+# already live in app/src/main/{assets,res} or in node_modules, so committing
+# them would duplicate ~17MB and let the copies drift from their sources. The
+# Pages workflow runs the script at build time.
 frontend/public/wasm/
+frontend/public/models/
+frontend/public/fonts/
+frontend/src/assets/*.ttf

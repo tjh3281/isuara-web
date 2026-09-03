@@ -32,9 +32,32 @@ from . import config, parsing, prompts
 
 log = logging.getLogger(__name__)
 
-# gemini-3.7-flash returned 503 "experiencing high demand" when this was first
-# wired up on Android; this is the model the pipeline was validated against.
+# The model the pipeline was originally validated against, and the judge.
 DEFAULT_MODEL = "gemini-3.1-flash-lite"
+
+# The three models that debate.
+#
+# Upstream (service/GonkaTranslator.kt) moved from three prompt-personas on one
+# model to three DIFFERENT models sharing one prompt: diversity then comes from
+# the models themselves, so a disagreement between candidates is attributable to
+# the model rather than to a differing stance, and the system prompt stays a
+# constant across agents.
+#
+# This build stays on Gemini rather than GonkaRouter, which is a deliberate,
+# user-directed divergence from the app — so the same idea is reproduced with
+# three Gemini models spanning two generations and two size tiers. All three are
+# confirmed present for these keys via tools/list_gemini_models.py; guessing ids
+# would fail at runtime, in front of an audience.
+AGENT_MODELS = [
+    DEFAULT_MODEL,
+    "gemini-2.5-flash",
+    "gemini-3.5-flash",
+]
+
+# The judge. Mirrors the Android choice of reusing the default agent model:
+# it sits on the critical path once the agents finish, so it wants to be the
+# fast, clean one rather than the most capable.
+JUDGE_MODEL = DEFAULT_MODEL
 
 # Where the pipeline currently is, for display while the user waits.
 #
@@ -123,9 +146,18 @@ async def _complete(system: str, user: str, client: genai.Client, model_id: str)
     return response.text or ""
 
 
-async def _agent(words: list[str], persona: str, slot: int, model_id: str) -> dict[str, str]:
+async def _agent(
+    words: list[str],
+    slot: int,
+    model_id: str,
+    emotion: dict | None = None,
+) -> dict[str, str | None]:
     """
-    One interpreter: gloss list in, four-language translation out.
+    One interpreter: gloss list in, translation out.
+
+    Every agent gets the identical system prompt — see AGENT_MODELS. The only
+    per-request variation is the observed expression line, which prompts.user_turn
+    adds and which is the same for all three agents within a request.
 
     One retry, because a model that rambles once usually complies on a re-ask and
     a second round trip is cheaper than falling back to raw glosses. This catches
@@ -133,12 +165,12 @@ async def _agent(words: list[str], persona: str, slot: int, model_id: str) -> di
     want since the debate tolerates a missing agent and retrying an exhausted
     quota would only stall.
     """
-    system = prompts.with_persona(persona)
+    user = prompts.user_turn(words, emotion)
     last_error: Exception | None = None
 
     for attempt in range(2):
         try:
-            raw = await _complete(system, prompts.user_turn(words), clients.for_slot(slot), model_id)
+            raw = await _complete(prompts.SYSTEM, user, clients.for_slot(slot), model_id)
             translation = parsing.extract_translation(raw)
             log.info("key[%d] %s %s -> %s", slot, model_id, words, translation["ms"])
             return translation
@@ -152,7 +184,7 @@ async def _agent(words: list[str], persona: str, slot: int, model_id: str) -> di
 _judge_slot = itertools.count()
 
 
-async def _judge(words: list[str], candidates: list[dict[str, str]], model_id: str) -> int:
+async def _judge(words: list[str], candidates: list[dict[str, str | None]]) -> int:
     """
     Returns the index of the winning candidate.
 
@@ -163,7 +195,7 @@ async def _judge(words: list[str], candidates: list[dict[str, str]], model_id: s
     slot = clients.slot_of(next(_judge_slot))
     log.info("judging on key[%d]", slot)
     raw = await _complete(
-        prompts.JUDGE, prompts.judge_turn(words, candidates), clients.for_slot(slot), model_id
+        prompts.JUDGE, prompts.judge_turn(words, candidates), clients.for_slot(slot), JUDGE_MODEL
     )
     choice, reason = parsing.extract_choice(raw, len(candidates))
     log.info('judge chose [%d] "%s" — %s', choice, candidates[choice]["ms"], reason)
@@ -171,8 +203,8 @@ async def _judge(words: list[str], candidates: list[dict[str, str]], model_id: s
 
 
 async def debate(
-    words: list[str], model_id: str = DEFAULT_MODEL
-) -> AsyncIterator[tuple[str, dict[str, str] | None]]:
+    words: list[str], emotion: dict | None = None
+) -> AsyncIterator[tuple[str, dict[str, str | None] | None]]:
     """
     Runs the debate, yielding `(stage, result)` as it goes.
 
@@ -190,24 +222,26 @@ async def debate(
 
     yield "CONSULTING", None
 
+    # Agent i draws on key slot i, so the three consume three separate free-tier
+    # quota buckets rather than competing for one.
     settled = await asyncio.gather(
         *(
-            _agent(words, persona, clients.slot_of(i), model_id)
-            for i, persona in enumerate(prompts.PERSONAS)
+            _agent(words, clients.slot_of(i), model, emotion)
+            for i, model in enumerate(AGENT_MODELS)
         ),
         return_exceptions=True,
     )
 
-    candidates: list[dict[str, str]] = []
+    candidates: list[dict[str, str | None]] = []
     for i, outcome in enumerate(settled):
         if isinstance(outcome, BaseException):
-            log.warning("interpreter[%d] failed: %s", i, outcome)
+            log.warning("interpreter[%d] (%s) failed: %s", i, AGENT_MODELS[i], outcome)
         else:
             candidates.append(outcome)
-            log.info("candidate[%d]: %s", i, outcome["ms"])
+            log.info("candidate[%d] (%s): %s", i, AGENT_MODELS[i], outcome["ms"])
 
     if not candidates:
-        raise RuntimeError(f"all {len(prompts.PERSONAS)} interpreters failed")
+        raise RuntimeError(f"all {len(AGENT_MODELS)} interpreters failed")
 
     # Nothing to choose between — skip the judge and its latency.
     if len(candidates) == 1:
@@ -223,7 +257,7 @@ async def debate(
     # A failed judge must not discard candidates we already hold; an arbitrary
     # but valid answer beats falling back to raw glosses.
     try:
-        chosen = await _judge(words, candidates, model_id)
+        chosen = await _judge(words, candidates)
     except Exception as e:
         log.warning("judge failed, using first candidate: %s", e)
         chosen = 0

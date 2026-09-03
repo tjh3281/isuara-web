@@ -17,15 +17,25 @@ load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 REPO_ROOT = Path(__file__).resolve().parents[3]
 ASSETS_DIR = REPO_ROOT / "app" / "src" / "main" / "assets"
 
-# The SAME file the phone loads — see ml/SignInterpreter.kt, which names
-# bim_lstm_v3_int8.tflite. An earlier version of this used the f32 build on the
-# reasoning that a server has no size constraint, but that made the web build
-# quietly a different model from the app. The notebook measures both variants at
-# 90.99% (Keras 91.16%, drift 0.17%), so matching the app costs no accuracy.
+# The V3.1.2 FP16 export, which ml/SignInterpreter.kt also loads.
 #
-# f32 stays available for A/B checks; nothing selects it by default.
-MODEL_FILE = ASSETS_DIR / "bim_lstm_v3_int8.tflite"
-MODEL_FILE_F32 = ASSETS_DIR / "bim_lstm_v3_f32.tflite"
+# This one matters far beyond being newer: it contains NO Flex ops, where the
+# older v3 exports carry FlexTensorListReserve/SetItem/Stack. Verified with
+# tools/check_model.py — it loads without a "select TF ops" delegate being
+# created at all. Consequences:
+#
+#   * any TensorFlow version runs it; the 2.17-2.19 window no longer binds
+#   * it can run IN THE BROWSER via LiteRT.js / tfjs-tflite, which would remove
+#     this inference backend entirely and put the pipeline back on the edge
+#
+# Same contract as before — (1, 30, 780) float32 in, (1, 98) float32 softmax out
+# — so nothing upstream changes.
+MODEL_FILE = ASSETS_DIR / "bim_lstm_v312_fp16.tflite"
+
+# The older Flex-dependent exports, kept for A/B comparison. Nothing selects
+# these by default; loading one re-imposes the TensorFlow version window.
+MODEL_FILE_V3_INT8 = ASSETS_DIR / "bim_lstm_v3_int8.tflite"
+MODEL_FILE_V3_F32 = ASSETS_DIR / "bim_lstm_v3_f32.tflite"
 LABEL_MAP_FILE = ASSETS_DIR / "label_map.json"
 
 # Keras artifacts, gitignored because they are large and not in the Android
