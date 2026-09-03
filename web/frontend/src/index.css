@@ -39,6 +39,15 @@
   --button-h: 56px; /* uniformButtonHeight */
   --gap: 16px; /* the dominant Spacer/padding value */
 
+  /*
+   * Height the rest of the screen keeps for itself; the camera gets whatever is
+   * left. Measured, not guessed: 78px of navigation bar, 198px of panel that
+   * cannot compress (32px padding + 60px word row + 2px confidence bar + 16px
+   * card gap + 56px button row + 32px spacers), and 40px so the sentence card
+   * does not collapse to a hairline.
+   */
+  --below-camera: 316px;
+
   color-scheme: dark;
 }
 
@@ -88,6 +97,12 @@ body {
  * The app is a phone screen: a full-height Column on black. Capped at a handset
  * width and centred, because the camera box below is portrait 3:4 and would be
  * absurd stretched across a desktop monitor.
+ *
+ * The width stays fixed even on a browser window shorter than a phone. The
+ * camera is what gives way there instead — see `--below-camera` — because the
+ * panel below holds text and a row of buttons at the app's real sizes, and
+ * scaling the whole column down to fit a short window makes those unreadable
+ * and starts clipping the button labels. A smaller preview costs nothing.
  */
 .app {
   width: 100%;
@@ -110,6 +125,13 @@ body {
   min-height: 0;
   display: flex;
   flex-direction: column;
+  /*
+   * A hard guarantee that the navigation bar stays reachable. `.camera` is
+   * positioned, so anything it overflows paints *over* the non-positioned nav
+   * that follows it, rather than being covered by it — clipping here means the
+   * worst a too-tall tab can do is crop itself.
+   */
+  overflow: hidden;
 }
 
 .screen[hidden] {
@@ -118,13 +140,41 @@ body {
 
 /* ── camera: Box(fillMaxWidth).aspectRatio(3f / 4f) ── */
 
+/*
+ * The slot the preview lives in, and the only part of the layout that gives way
+ * on a short window.
+ *
+ * At 480px wide the 3:4 preview is 640px tall, which is more than many laptop
+ * browser windows have. Unclamped it overflowed: the buttons ended up below the
+ * bottom of the window and the preview painted straight over the navigation bar,
+ * so the avatar tab could not be clicked. The max-height caps it at whatever is
+ * left once the panel and the nav have taken theirs.
+ *
+ * The clamp deliberately squashes *this* box rather than the preview: a definite
+ * width plus `aspect-ratio` means max-height clips the height without CSS
+ * re-deriving the width, so the ratio would break. `.camera__stage` inside keeps
+ * the true 3:4 and this box becomes a black letterbox frame around it. On a
+ * window tall enough for the full 640px the two coincide exactly and there is no
+ * letterboxing at all.
+ */
 .camera {
   position: relative;
   width: 100%;
   aspect-ratio: 3 / 4; /* Compose aspectRatio(w/h) = 0.75 — portrait, not landscape */
-  background: var(--dark-gray);
+  max-height: calc(100dvh - var(--below-camera));
+  background: var(--black);
   overflow: hidden;
   flex: none;
+}
+
+/* The preview itself, at the app's aspect ratio whatever the frame around it. */
+.camera__stage {
+  position: relative;
+  height: 100%;
+  aspect-ratio: 3 / 4;
+  margin: 0 auto;
+  background: var(--dark-gray);
+  overflow: hidden;
 }
 
 .camera__video,
