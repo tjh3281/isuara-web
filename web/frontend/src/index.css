@@ -93,10 +93,27 @@ body {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  min-height: 100dvh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--black);
+  overflow: hidden;
+}
+
+/*
+ * One tab's content. Both stay in the tree — `hidden` removes the inactive one
+ * from layout without unmounting it, so switching tabs neither drops the camera
+ * stream nor throws away the avatar's WebGL context.
+ */
+.screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.screen[hidden] {
+  display: none;
 }
 
 /* ── camera: Box(fillMaxWidth).aspectRatio(3f / 4f) ── */
@@ -485,6 +502,188 @@ body {
 
 .menu__item--active {
   font-weight: 700;
+}
+
+/* ── bottom navigation (MainActivity.kt NavigationBar) ── */
+
+.nav {
+  flex: none;
+  display: flex;
+  background: #0d1117; /* containerColor */
+  padding: 12px 0 14px;
+}
+
+.nav__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: rgb(255 255 255 / 0.6);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Material 3 puts a filled capsule behind the selected icon. */
+.nav__indicator {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 32px;
+  border-radius: 16px;
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+}
+
+.nav__item--active .nav__indicator {
+  background: #1f6feb; /* indicatorColor */
+  color: #ffffff; /* selectedIconColor */
+}
+
+.nav__label {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.nav__item--active .nav__label {
+  color: #58a6ff; /* selectedTextColor */
+  font-weight: 700;
+}
+
+/* ── avatar screen (AvatarPlayerScreen.kt) ── */
+
+.avatar {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: #090d13; /* matches the GL clear colour */
+  overflow: hidden;
+}
+
+.avatar__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none; /* drag orbits rather than scrolling the page */
+  cursor: grab;
+}
+
+.avatar__canvas:active {
+  cursor: grabbing;
+}
+
+.avatar__hud {
+  position: absolute;
+  inset: 12px 12px auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.avatar__word {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.5);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.avatar__views {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+  pointer-events: auto;
+}
+
+.avatar__view {
+  padding: 5px 9px;
+  border: 1px solid #30363d;
+  border-radius: 999px;
+  background: rgb(13 17 23 / 0.85);
+  color: #8b949e;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.avatar__view--active {
+  border-color: #58a6ff;
+  color: #58a6ff;
+}
+
+.avatar__status {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.6);
+  color: var(--unsure);
+  font-size: 13px;
+}
+
+/* Bottom input bar: 24dp top corners, translucent #161B22 over the viewport. */
+.avatar__bar {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: rgb(22 27 34 / 0.94);
+  border-top: 1px solid rgb(48 54 61 / 0.2);
+  border-radius: 24px 24px 0 0;
+}
+
+.avatar__input {
+  flex: 1;
+  min-width: 0;
+  height: 50px;
+  padding: 0 18px;
+  border: 1px solid #30363d; /* unfocusedBorderColor */
+  border-radius: 25px;
+  background: #0d1117;
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+}
+
+.avatar__input::placeholder {
+  color: #8b949e;
+}
+
+.avatar__input:focus {
+  outline: none;
+  border-color: #58a6ff; /* focusedBorderColor */
+}
+
+.avatar__send {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: #238636;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.avatar__send:hover {
+  background: #2ea043;
 }
 
 /*

@@ -51,6 +51,16 @@ const jobs = [
     from: resolve(repoRoot, 'app/src/main/res/font/google_sans_flex.ttf'),
     to: resolve(here, '../src/assets/google_sans_flex.ttf'),
   },
+  {
+    // The avatar's BIM sign clips. Fetched by key at runtime rather than
+    // bundled, so a clip is only downloaded when someone actually signs it —
+    // all 37 together are several megabytes.
+    label: 'avatar motions',
+    from: resolve(androidAssets, 'motions'),
+    to: resolve(here, '../public/motions'),
+    dir: true,
+    hint: 'expected app/src/main/assets/motions from the signavatar branch',
+  },
 ]
 
 for (const job of jobs) {

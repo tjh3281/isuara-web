@@ -37,4 +37,5 @@ frontend/.vite/
 frontend/public/wasm/
 frontend/public/models/
 frontend/public/fonts/
+frontend/public/motions/
 frontend/src/assets/*.ttf

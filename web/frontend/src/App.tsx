@@ -17,6 +17,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { AvatarScreen } from './components/AvatarScreen'
+import { BottomNav, type Tab } from './components/BottomNav'
 import { CameraView } from './components/CameraView'
 import { ControlBar } from './components/ControlBar'
 import { SentencePanel } from './components/SentencePanel'
@@ -49,6 +51,7 @@ export default function App() {
   const [isTranslating, setIsTranslating] = useState(false)
   const [stage, setStage] = useState<TranslationStage>('IDLE')
   const [showLandmarks, setShowLandmarks] = useState(false)
+  const [tab, setTab] = useState<Tab>('camera')
 
   // Probed once by the pipeline when the camera starts; null means no backend,
   // which is the normal case for the statically-hosted build.
@@ -163,53 +166,67 @@ export default function App() {
   return (
     <div className="app">
       {/*
-        No counterpart on the phone — the app cannot reach a state where the
-        model is missing. Disappears entirely once the backend loads it.
+        Both tabs stay mounted and the inactive one is hidden rather than
+        unmounted. Tearing down the camera tab would drop the camera stream and
+        the sentence buffer on every tab switch, and tearing down the avatar tab
+        would discard the WebGL context and the loaded clips.
       */}
-      {health?.modelError && (
-        <div className="notice">
-          <strong>Sign recognition unavailable.</strong> Camera, tracking,
-          translation and speech still work.
-          <details>
-            <summary>Why</summary>
-            <pre>{health.modelError}</pre>
-          </details>
+      <div className="screen" hidden={tab !== 'camera'}>
+        {/*
+          No counterpart on the phone — the app cannot reach a state where the
+          model is missing. Disappears entirely once the backend loads it.
+        */}
+        {health?.modelError && (
+          <div className="notice">
+            <strong>Sign recognition unavailable.</strong> Camera, tracking,
+            translation and speech still work.
+            <details>
+              <summary>Why</summary>
+              <pre>{health.modelError}</pre>
+            </details>
+          </div>
+        )}
+
+        <CameraView
+          videoRef={pipeline.videoRef}
+          keypoints={state.keypoints}
+          bufferProgress={state.bufferProgress}
+          fps={pipeline.fps}
+          facingMode={pipeline.facingMode}
+          showLandmarks={showLandmarks}
+          status={pipeline.status}
+          onToggleLandmarks={() => setShowLandmarks((v) => !v)}
+          onSwitchCamera={pipeline.switchCamera}
+        />
+
+        {/* Column(fillMaxWidth).weight(1f).padding(16.dp) */}
+        <div className="panel">
+          <SentencePanel
+            state={state}
+            labelMap={labelMap}
+            language={language}
+            translation={translation}
+            isTranslating={isTranslating}
+            stage={stage}
+          />
+          <ControlBar
+            language={language}
+            onLanguageChange={handleLanguageChange}
+            onClear={handleClear}
+            onTranslate={() => void translateSentence(false)}
+            onSpeak={handleSpeak}
+            canTranslate={state.sentence.length > 0 && !isTranslating}
+            canSpeak={state.sentence.length > 0 || translation !== null}
+            translationEnabled={health?.translationEnabled ?? false}
+          />
         </div>
-      )}
-
-      <CameraView
-        videoRef={pipeline.videoRef}
-        keypoints={state.keypoints}
-        bufferProgress={state.bufferProgress}
-        fps={pipeline.fps}
-        facingMode={pipeline.facingMode}
-        showLandmarks={showLandmarks}
-        status={pipeline.status}
-        onToggleLandmarks={() => setShowLandmarks((v) => !v)}
-        onSwitchCamera={pipeline.switchCamera}
-      />
-
-      {/* Column(fillMaxWidth).weight(1f).padding(16.dp) */}
-      <div className="panel">
-        <SentencePanel
-          state={state}
-          labelMap={labelMap}
-          language={language}
-          translation={translation}
-          isTranslating={isTranslating}
-          stage={stage}
-        />
-        <ControlBar
-          language={language}
-          onLanguageChange={handleLanguageChange}
-          onClear={handleClear}
-          onTranslate={() => void translateSentence(false)}
-          onSpeak={handleSpeak}
-          canTranslate={state.sentence.length > 0 && !isTranslating}
-          canSpeak={state.sentence.length > 0 || translation !== null}
-          translationEnabled={health?.translationEnabled ?? false}
-        />
       </div>
+
+      <div className="screen" hidden={tab !== 'avatar'}>
+        <AvatarScreen />
+      </div>
+
+      <BottomNav tab={tab} onChange={setTab} />
     </div>
   )
 }
