@@ -108,13 +108,29 @@ export function useSignPipeline() {
         //
         // Everything above this line — camera, MediaPipe, normalization — is
         // browser-local and works either way. When the site is served
-        // statically (GitHub Pages) there is no /api, so probing first avoids
-        // an endless reconnect loop against an origin that will never answer,
-        // and the UI simply runs without gloss recognition. With the backend
-        // running locally, this is unchanged: it connects and predicts.
-        const probe = await fetchHealth().catch(() => null)
-        setHealth(probe)
-        if (probe) clientRef.current!.connect()
+        // statically there is no /api, so probing first avoids an endless
+        // reconnect loop against an origin that will never answer, and the UI
+        // simply runs without gloss recognition.
+        //
+        // Probed alongside, NOT awaited. A free host suspends an idle API and
+        // takes up to a minute to wake, and awaiting that held the phase short
+        // of 'running' for the whole cold start: the preview stayed behind its
+        // placeholder and the frame loop had not begun, so the site looked
+        // broken rather than slow. Nothing below needs the answer — recognition
+        // just attaches whenever it arrives.
+        const probed = stream
+        void fetchHealth()
+          .then((probe) => {
+            // A restart (camera switch) or a stop may have landed while this
+            // was in flight; connecting then would attach a socket to a
+            // pipeline that no longer exists and orphan the previous one.
+            if (streamRef.current !== probed) return
+            setHealth(probe)
+            clientRef.current?.connect()
+          })
+          .catch(() => {
+            if (streamRef.current === probed) setHealth(null)
+          })
 
         setStatus({ phase: 'running', message: '' })
 
