@@ -171,9 +171,31 @@ body {
   justify-content: space-between;
 }
 
+.camera__hud-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .camera__hud-actions {
   display: flex;
   gap: 8px; /* Arrangement.spacedBy(8.dp) */
+}
+
+/*
+ * The observed expression. Tinted only when high-arousal, because that is the
+ * distinction the translator's register rule actually turns on — a calm reading
+ * should not draw the eye.
+ */
+.badge--emotion {
+  text-transform: capitalize;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.badge--aroused {
+  color: var(--unsure);
+  font-weight: 700;
 }
 
 /* Surface(Black 0.5, RoundedCornerShape(16.dp)) + Text(12.sp, Bold) */

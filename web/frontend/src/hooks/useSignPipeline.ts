@@ -14,6 +14,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 
+import { EmotionClassifier, type EmotionReading } from '../lib/emotion/classifier'
 import { LandmarkExtractor } from '../lib/landmarkExtractor'
 import { loadLabelMap, type LabelMap } from '../lib/labelMap'
 import { PredictClient, type ConnectionState } from '../lib/predictClient'
@@ -45,6 +46,11 @@ export function useSignPipeline() {
   const [fps, setFps] = useState(0)
   /** null until probed, and stays null when no backend is reachable. */
   const [health, setHealth] = useState<Health | null>(null)
+  /** The latest facial-expression reading, or null before one settles. */
+  const [emotion, setEmotion] = useState<EmotionReading | null>(null)
+
+  const emotionRef = useRef<EmotionClassifier | null>(null)
+  if (!emotionRef.current) emotionRef.current = new EmotionClassifier()
 
   // Built once and kept for the life of the tab. The predictor holds the frame
   // window and sentence buffer, so recreating it would silently reset both.
@@ -91,6 +97,13 @@ export function useSignPipeline() {
           extractorRef.current = await LandmarkExtractor.create()
         }
 
+        // Loaded alongside, not awaited: the expression model is ~15MB and the
+        // camera should not wait on it. Sampling simply returns null until it
+        // is ready.
+        void emotionRef.current?.load().catch((e) => {
+          console.warn('[emotion] classifier unavailable', e)
+        })
+
         // Open the prediction socket only when a backend is actually there.
         //
         // Everything above this line — camera, MediaPipe, normalization — is
@@ -117,6 +130,15 @@ export function useSignPipeline() {
           try {
             const { features } = extractor.extract(video, performance.now())
             predictor.onLandmarksExtracted(features)
+
+            // Expression sampling is throttled inside the classifier and skips
+            // while a previous inference is running, so this never blocks the
+            // frame loop even though the model is far heavier than the sign one.
+            void emotionRef.current
+              ?.sample(video, video.videoWidth, video.videoHeight, features)
+              .then((reading) => {
+                if (reading) setEmotion(reading)
+              })
           } catch (e) {
             console.warn('[pipeline] frame dropped', e)
           }
@@ -174,6 +196,7 @@ export function useSignPipeline() {
     fps,
     facingMode,
     health,
+    emotion,
     start: () => start(facingMode),
     stop,
     switchCamera,

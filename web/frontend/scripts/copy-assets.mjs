@@ -47,6 +47,13 @@ const jobs = [
     to: resolve(here, '../public/models/label_map.json'),
   },
   {
+    // The AffectNet expression classifier. Runs in the browser via
+    // onnxruntime-web, so it never needs the backend.
+    label: 'emotion classifier',
+    from: resolve(androidAssets, 'emotion_enet_b0_8.onnx'),
+    to: resolve(here, '../public/models/emotion_enet_b0_8.onnx'),
+  },
+  {
     label: 'google sans flex',
     from: resolve(repoRoot, 'app/src/main/res/font/google_sans_flex.ttf'),
     to: resolve(here, '../src/assets/google_sans_flex.ttf'),
@@ -62,6 +69,11 @@ const jobs = [
     hint: 'expected app/src/main/assets/motions from the signavatar branch',
   },
 ]
+
+// onnxruntime's WASM is NOT copied here. It is imported with Vite's `?url` in
+// lib/emotion/classifier.ts instead, which fingerprints it, rewrites the URL for
+// the deployment base, and serves the loader as a static asset. A public/ copy
+// hit a 500 because Vite tried to transform the .mjs loader as a module.
 
 for (const job of jobs) {
   if (!existsSync(job.from)) {

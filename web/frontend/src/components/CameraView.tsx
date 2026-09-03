@@ -16,6 +16,7 @@
 import { useEffect, useRef } from 'react'
 
 import type { FacingMode, PipelineStatus } from '../hooks/useSignPipeline'
+import { MIN_CONFIDENCE, type EmotionReading } from '../lib/emotion/classifier'
 
 interface Props {
   videoRef: React.RefObject<HTMLVideoElement>
@@ -25,6 +26,7 @@ interface Props {
   facingMode: FacingMode
   showLandmarks: boolean
   status: PipelineStatus
+  emotion: EmotionReading | null
   onToggleLandmarks: () => void
   onSwitchCamera: () => void
 }
@@ -50,6 +52,7 @@ export function CameraView({
   facingMode,
   showLandmarks,
   status,
+  emotion,
   onToggleLandmarks,
   onSwitchCamera,
 }: Props) {
@@ -127,7 +130,23 @@ export function CameraView({
       )}
 
       <div className="camera__hud">
-        <span className="badge">{fps} FPS</span>
+        <div className="camera__hud-left">
+          <span className="badge">{fps} FPS</span>
+          {/*
+            The observed expression — emotion/ui/EmotionChip.kt. Only shown once
+            a reading clears the confidence floor; below that a hint is worse
+            than none, since neither the user nor the model can tell how much to
+            discount it.
+          */}
+          {emotion && emotion.confidence >= MIN_CONFIDENCE && (
+            <span
+              className={`badge badge--emotion${emotion.isHighArousal ? ' badge--aroused' : ''}`}
+              title={`${Math.round(emotion.confidence * 100)}% confident`}
+            >
+              {emotion.descriptorMs}
+            </span>
+          )}
+        </div>
         <div className="camera__hud-actions">
           {/* Icons.Default.Settings */}
           <button

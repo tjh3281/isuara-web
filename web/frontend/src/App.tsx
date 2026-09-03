@@ -91,7 +91,21 @@ export default function App() {
 
       const rawSentence = words.join(' ')
       try {
-        const result = await runTranslate(words, setProgress)
+        // The expression rides along so rule 8 can shift register. Weak
+        // readings are dropped server-side rather than hedged, so sending
+        // whatever we have is safe.
+        const reading = pipeline.emotion
+        const result = await runTranslate(
+          words,
+          setProgress,
+          reading
+            ? {
+                descriptor: reading.descriptor,
+                confidence: reading.confidence,
+                isHighArousal: reading.isHighArousal,
+              }
+            : null,
+        )
         setTranslation(result)
         if (speak) tts.speakTranslation(result, language)
       } catch (e) {
@@ -107,7 +121,7 @@ export default function App() {
         setProgress((p) => ({ ...p, stage: 'IDLE' }))
       }
     },
-    [isTranslating, language, predictor, tts],
+    [isTranslating, language, predictor, tts, pipeline.emotion],
   )
 
   // ── auto-translate ──
@@ -201,6 +215,7 @@ export default function App() {
           facingMode={pipeline.facingMode}
           showLandmarks={showLandmarks}
           status={pipeline.status}
+          emotion={pipeline.emotion}
           onToggleLandmarks={() => setShowLandmarks((v) => !v)}
           onSwitchCamera={pipeline.switchCamera}
         />
