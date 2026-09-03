@@ -8,7 +8,11 @@
 # TensorFlow's own notice recommends this package: "tf.lite.Interpreter is
 # deprecated ... Please use the LiteRT interpreter from the ai_edge_litert
 # package."
-ai-edge-litert==1.4.0
+#
+# 2.2.0 is the version actually measured, and it publishes a cp312
+# manylinux_2_27_x86_64 wheel, which is what the 3.12 image in the Dockerfile
+# installs — no source build, no compiler in the image.
+ai-edge-litert==2.2.0
 numpy<3
 
 fastapi==0.118.0
