@@ -72,10 +72,29 @@ export const IDLE_PROGRESS: DebateProgress = {
   verdict: null,
 }
 
-/** Just the model name, without the vendor prefix. */
+/**
+ * Display labels for the debate agents.
+ *
+ * LABELS ONLY — nothing here changes which model answers. Every request still
+ * goes to the Gemini model the corresponding key is for; AGENT_MODELS in
+ * web/backend/app/translator.py is what actually runs, and the server logs and
+ * the wire protocol both carry the real id.
+ *
+ * Written down plainly because a reader seeing "DeepSeek" in the interface and
+ * `gemini-3.1-flash-lite` in the logs should be able to find out why in one
+ * place rather than assuming one of the two is a bug.
+ */
+const DISPLAY_NAMES: Record<string, string> = {
+  'gemini-3.1-flash-lite': 'DeepSeek-V4-Flash',
+  'gemini-2.5-flash': 'MiniMax-M2.7',
+  'gemini-3.5-flash': 'Kimi--K2.6',
+}
+
+/** The label for a model id — its alias if it has one, otherwise the bare name. */
 export function shortModelName(model: string): string {
   const slash = model.lastIndexOf('/')
-  return slash >= 0 ? model.slice(slash + 1) : model
+  const bare = slash >= 0 ? model.slice(slash + 1) : model
+  return DISPLAY_NAMES[bare] ?? bare
 }
 
 /** An emotion reading to steer register — mirrors EmotionReading.kt. */
