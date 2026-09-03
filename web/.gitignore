@@ -27,6 +27,8 @@ backend/models/
 frontend/node_modules/
 frontend/dist/
 frontend/tsconfig.tsbuildinfo
+# Vite's pre-bundled dependency cache — machine-local, regenerated on demand.
+frontend/.vite/
 
 # Everything scripts/copy-assets.mjs generates. These are copies of files that
 # already live in app/src/main/{assets,res} or in node_modules, so committing
