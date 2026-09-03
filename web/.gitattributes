@@ -6,3 +6,8 @@
 
 # Same reasoning for anything else read by a POSIX shell or Python under WSL.
 *.py text eol=lf
+
+# And for the Dockerfile, whose RUN lines are handed to a shell inside a Linux
+# image. A CRLF ending puts a stray carriage return on the end of the command,
+# which fails in a way that reads as a broken command rather than a line ending.
+Dockerfile text eol=lf
