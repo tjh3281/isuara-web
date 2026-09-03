@@ -164,7 +164,15 @@ body {
   max-height: calc(100dvh - var(--below-camera));
   background: var(--black);
   overflow: hidden;
-  flex: none;
+  /*
+   * Shrinkable as well as capped. The cap covers the ordinary case; the shrink
+   * covers anything the cap cannot know about in advance — today a notice above
+   * the camera, tomorrow whatever else appears in this column. `.panel` refuses
+   * to shrink, so all of the pressure lands here, and the stage inside keeps the
+   * ratio however far this box is squeezed.
+   */
+  flex: 0 1 auto;
+  min-height: 0;
 }
 
 /* The preview itself, at the app's aspect ratio whatever the frame around it. */
@@ -293,7 +301,10 @@ body {
 /* ── centre panel: Column(weight(1f)).padding(16.dp) ── */
 
 .panel {
-  flex: 1;
+  /* Grows into spare space but never compresses: the word row, the confidence
+     bar and the button row are fixed sizes off the phone, so squeezing them is
+     always the wrong trade. The camera above gives way instead. */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -889,6 +900,20 @@ body {
 
 .notice details {
   margin-top: 6px;
+}
+
+.notice details p {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-empty);
+}
+
+.notice code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 0.4);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
 }
 
 .notice summary {

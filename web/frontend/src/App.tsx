@@ -207,6 +207,33 @@ export default function App() {
           </div>
         )}
 
+        {/*
+          No backend answered the probe, so nothing is classifying the frames.
+          Worth saying out loud: without it the camera runs, the skeleton
+          tracks, the buffer bar fills, and the sentence sits on "Waiting for
+          signs…" forever — which looks exactly like a model that cannot see
+          you, and sent us chasing the wrong thing once already.
+
+          `phase === 'running'` is what distinguishes "probed, nothing there"
+          from "not probed yet"; the probe happens before the phase flips.
+        */}
+        {pipeline.status.phase === 'running' && health === null && (
+          <div className="notice">
+            <strong>No recogniser attached.</strong> Camera, tracking,
+            translation and speech work; signs are not being classified.
+            <details>
+              <summary>Why</summary>
+              <p>
+                Nothing answered <code>/api/health</code>. That is expected on
+                the statically hosted build, which has no backend. Running
+                locally, it means the API server is not up — or the dev server
+                is not proxying to it, which a restart of <code>npm run dev</code>{' '}
+                fixes.
+              </p>
+            </details>
+          </div>
+        )}
+
         <CameraView
           videoRef={pipeline.videoRef}
           keypoints={state.keypoints}
