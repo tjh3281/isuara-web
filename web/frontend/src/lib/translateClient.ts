@@ -11,6 +11,7 @@
  * fall back to the raw Malay glosses, exactly as CameraScreen.kt does.
  */
 
+import { apiUrl } from './apiBase'
 import type { Translation } from './language'
 
 export type TranslationStage =
@@ -39,7 +40,7 @@ export interface Health {
 }
 
 export async function fetchHealth(): Promise<Health> {
-  const response = await fetch('/api/health')
+  const response = await fetch(apiUrl('/api/health'))
   if (!response.ok) throw new Error(`health: HTTP ${response.status}`)
   return response.json()
 }
@@ -100,7 +101,7 @@ export async function translate(
   emotion?: EmotionReading | null,
   signal?: AbortSignal,
 ): Promise<Translation> {
-  const response = await fetch('/api/translate', {
+  const response = await fetch(apiUrl('/api/translate'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ words, emotion: emotion ?? null }),

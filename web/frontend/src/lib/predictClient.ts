@@ -13,6 +13,7 @@
  * of actual inference.
  */
 
+import { wsUrl } from './apiBase'
 import { FINAL_FEATURES, SEQUENCE_LENGTH } from './frameNormalizer'
 
 export interface Prediction {
@@ -26,8 +27,7 @@ export type ConnectionState = 'connecting' | 'open' | 'closed'
 const WINDOW_FLOATS = SEQUENCE_LENGTH * FINAL_FEATURES
 
 function socketUrl(): string {
-  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
-  return `${protocol}//${location.host}/ws/predict`
+  return wsUrl('/ws/predict')
 }
 
 const MIN_RECONNECT_MS = 500

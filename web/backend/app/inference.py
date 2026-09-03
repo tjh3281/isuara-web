@@ -136,13 +136,34 @@ class SignInterpreter:
         return True
 
     def _load_tflite(self) -> bool:
-        """The phone's model. Needs the Flex delegate — Linux and macOS only."""
+        """
+        The phone's model, on whichever interpreter is installed.
+
+        LiteRT first, TensorFlow only as a fallback. They are the same
+        interpreter — TensorFlow's own deprecation notice points here — but
+        LiteRT is 48MB against TensorFlow's 1.4GB, which is the difference
+        between a deployment that fits a free host and one that does not.
+        Measured on this exact file: identical class, identical timing, outputs
+        agreeing to 1.1e-08, which is float32 rounding rather than a difference
+        in behaviour.
+
+        This only became possible with the Flex-free fp16 export. The older v3
+        files need the Flex delegate, which ships with TensorFlow alone — so if
+        config.MODEL_FILE is ever pointed back at one of them, the import below
+        falls through to TensorFlow and the version window in the module
+        docstring applies again.
+        """
         if not config.MODEL_FILE.exists():
             return False
 
-        import tensorflow as tf
+        try:
+            from ai_edge_litert.interpreter import Interpreter
+        except ImportError:
+            import tensorflow as tf
 
-        interpreter = tf.lite.Interpreter(model_path=str(config.MODEL_FILE))
+            Interpreter = tf.lite.Interpreter
+
+        interpreter = Interpreter(model_path=str(config.MODEL_FILE))
         interpreter.allocate_tensors()
 
         input_index = interpreter.get_input_details()[0]["index"]

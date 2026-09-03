@@ -1,0 +1,26 @@
+# Development extras. Not installed on the server — see requirements.txt.
+-r requirements.txt
+
+pytest==8.4.2
+
+# TensorFlow is pinned to a NARROW window, and both bounds are real.
+#
+# Only two paths need it, neither of them deployed: loading a .keras export, and
+# running the older v3 .tflite files, which were converted with SELECT_TF_OPS
+# and so carry Flex ops (FlexTensorListReserve/SetItem/Stack) that need the
+# TFLite Flex delegate. Measured on this project's own bim_lstm_v3_f32.tflite:
+#
+#   2.16.1  Flex delegate present, but the TFLite runtime is too old —
+#           "Didn't find op for builtin opcode 'FULLY_CONNECTED' version '12'"
+#   2.17.1  PASS
+#   2.18.1  PASS
+#   2.19.0  PASS   <- pinned: newest version that works
+#   2.20+   Flex delegate REMOVED from the pip package. Fails with
+#           "Select TensorFlow op(s) ... not supported by this interpreter".
+#
+# The delegate depends on the TensorFlow VERSION, not the operating system —
+# 2.19 works on Windows and Linux alike, 2.21 fails on both. Do not bump this
+# without re-running `bash tools/try-tf-versions.sh <version>`.
+#
+# Python: TF 2.19 supports 3.9-3.12. NOT 3.13 or 3.14.
+tensorflow==2.19.0

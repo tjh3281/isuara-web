@@ -1,0 +1,36 @@
+# Render blueprint for the API. Optional — the same Dockerfile deploys on Fly,
+# Railway or anything else that takes a container.
+#
+# NO SECRETS IN THIS FILE. It is committed. `sync: false` means Render prompts
+# for the value on first deploy and stores it in the service's environment,
+# where it stays server-side and is never sent to a browser.
+
+services:
+  - type: web
+    name: isuara-api
+    runtime: docker
+    dockerfilePath: ./web/backend/Dockerfile
+    # Repository root: config.py reads the model out of app/src/main/assets.
+    dockerContext: .
+    healthCheckPath: /api/health
+    plan: free
+    envVars:
+      # The frontend's origin, comma-separated. Without this the browser blocks
+      # every response, because the frontend is on another origin once the two
+      # are deployed separately. Set it to the Netlify URL, e.g.
+      # https://isuara.netlify.app
+      - key: ALLOWED_ORIGINS
+        sync: false
+
+      # One key per debate agent, each from a DIFFERENT Google Cloud project —
+      # the free tier allows 5 requests/minute per project and one debate costs
+      # four calls, so keys from one project share a bucket and buy nothing.
+      #
+      # Translation degrades rather than breaks without these: the app shows and
+      # speaks the raw detected glosses, exactly as the Android build does.
+      - key: GEMINI_API_KEY_1
+        sync: false
+      - key: GEMINI_API_KEY_2
+        sync: false
+      - key: GEMINI_API_KEY_3
+        sync: false

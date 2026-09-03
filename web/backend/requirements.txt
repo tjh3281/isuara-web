@@ -1,25 +1,14 @@
-# TensorFlow is pinned to a NARROW window, and both bounds are real.
+# What the server needs to run. Deliberately does NOT include TensorFlow.
 #
-# The model was converted with SELECT_TF_OPS, so it carries Flex ops
-# (FlexTensorListReserve/SetItem/Stack) that need the TFLite Flex delegate.
-# Measured on this project's own bim_lstm_v3_f32.tflite:
+# The shipped model (bim_lstm_v312_fp16.tflite) is Flex-free, so the standalone
+# LiteRT interpreter runs it — 48MB against TensorFlow's 1.4GB, which is the
+# difference between fitting a free host and not. Verified against this exact
+# file: same class, same speed, outputs agreeing to 1.1e-08.
 #
-#   2.16.1  Flex delegate present, but the TFLite runtime is too old —
-#           "Didn't find op for builtin opcode 'FULLY_CONNECTED' version '12'"
-#   2.17.1  PASS
-#   2.18.1  PASS
-#   2.19.0  PASS   <- pinned: newest version that works
-#   2.20+   Flex delegate REMOVED from the pip package. Fails with
-#           "Select TensorFlow op(s) ... not supported by this interpreter".
-#           Matches the deprecation notice: "tf.lite.Interpreter is deprecated
-#           and is scheduled for deletion in TF 2.20."
-#
-# The delegate depends on the TensorFlow VERSION, not the operating system —
-# 2.19 works on Windows and Linux alike, 2.21 fails on both. Do not bump this
-# without re-running `bash tools/try-tf-versions.sh <version>`.
-#
-# Python: TF 2.19 supports 3.9-3.12. NOT 3.13 or 3.14.
-tensorflow==2.19.0
+# TensorFlow's own notice recommends this package: "tf.lite.Interpreter is
+# deprecated ... Please use the LiteRT interpreter from the ai_edge_litert
+# package."
+ai-edge-litert==1.4.0
 numpy<3
 
 fastapi==0.118.0
@@ -28,3 +17,11 @@ uvicorn[standard]==0.37.0
 # The same provider the Android app uses, so translations match.
 google-genai==1.46.0
 python-dotenv==1.1.1
+
+# ── not installed here ──
+#
+# TensorFlow is needed only for the two optional paths, both development-only:
+# loading a .keras export, and running the older Flex-dependent v3 .tflite
+# files. Neither is on the deployed path. If you need one, see
+# requirements-dev.txt — the version window there is narrow and both bounds are
+# real.

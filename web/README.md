@@ -140,6 +140,68 @@ Everything except sign recognition works without them: camera, skeleton overlay,
 the feature pipeline, translation and speech all run. Only the gloss predictions
 are missing.
 
+## Deployment
+
+Two pieces on two hosts: the frontend is static and goes anywhere, the API is a
+container and needs a host that runs one. They find each other through
+`VITE_API_BASE`, and the API allows the frontend's origin through
+`ALLOWED_ORIGINS`. Verified end to end with the two served from different
+origins — recognition over the WebSocket and a full three-agent debate both work
+across the boundary.
+
+**The Gemini keys go on the API host only.** Never in the frontend's build. Vite
+inlines every `VITE_` variable into the JavaScript it ships, so a key placed
+there is readable by anyone who opens the page. `VITE_API_BASE` is a URL, not a
+credential, which is why it is allowed to be one.
+
+### API
+
+`web/backend/Dockerfile` builds it. Build from the repository root, not from
+`web/backend` — the image needs `app/src/main/assets`, which is where the model
+and label map live:
+
+```bash
+docker build -f web/backend/Dockerfile -t isuara-api .
+```
+
+`render.yaml` is a ready blueprint for Render; the same image runs on Fly,
+Railway or anything else that takes a container. Set these in the host's
+environment:
+
+| Variable | Value |
+|---|---|
+| `ALLOWED_ORIGINS` | the frontend's origin, e.g. `https://isuara.netlify.app` |
+| `GEMINI_API_KEY_1/2/3` | one key per debate agent, each from a different Google Cloud project |
+
+Without the keys the API still recognises signs; translation falls back to the
+raw glosses exactly as the Android build does.
+
+### Frontend
+
+`netlify.toml` at the repository root configures the build. Set one variable in
+the Netlify UI:
+
+| Variable | Value |
+|---|---|
+| `VITE_API_BASE` | the API's origin, e.g. `https://isuara-api.onrender.com` |
+
+Leave it unset and the site still deploys — camera, skeleton, expression
+reading, the 3D avatar and speech are all browser-local and work with no backend
+at all. Only recognition and translation need the API.
+
+For GitHub Pages instead, `.github/workflows/deploy-pages.yml` builds on every
+push to `website`. Pages serves a project site from `/<repo>/`, which the
+workflow passes as `VITE_BASE`; Netlify serves from the root, which
+`netlify.toml` sets to `/`.
+
+### Why the API image is small
+
+`requirements.txt` installs the standalone LiteRT interpreter, not TensorFlow —
+48MB against 1.4GB, which is the difference between fitting a free host and not.
+This is only possible because the shipped model is Flex-free; see
+[The model file](#the-model-file). TensorFlow is still needed for the two
+optional development paths and lives in `requirements-dev.txt`.
+
 ## Port notes
 
 Where the web build had to differ from the Android one, and why:
