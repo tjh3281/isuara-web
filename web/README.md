@@ -164,8 +164,7 @@ and label map live:
 docker build -f web/backend/Dockerfile -t isuara-api .
 ```
 
-`render.yaml` is a ready blueprint for Render; the same image runs on Fly,
-Railway or anything else that takes a container.
+The container image can run on Fly, Railway, Render or any host that takes a Docker container.
 
 For a host that needs no GitHub access at all, `spaces/build-space.ps1`
 assembles a Hugging Face Space from this tree and `spaces/README.md` is its
@@ -179,7 +178,7 @@ Set these in the host's environment:
 
 | Variable | Value |
 |---|---|
-| `ALLOWED_ORIGINS` | the frontend's origin, e.g. `https://isuara.netlify.app` |
+| `ALLOWED_ORIGINS` | the frontend's origin, e.g. `https://isuara.vercel.app` |
 | `GEMINI_API_KEY_1/2/3` | one key per debate agent, each from a different Google Cloud project |
 
 Without the keys the API still recognises signs; translation falls back to the
@@ -187,12 +186,15 @@ raw glosses exactly as the Android build does.
 
 ### Frontend
 
-`netlify.toml` at the repository root configures the build. Set one variable in
-the Netlify UI:
+Deploy directly to **Vercel** using the repository's root `vercel.json`:
+
+1. Import the repository into Vercel.
+2. The root `vercel.json` automatically configures Vite build commands, asset pipeline execution (`prebuild`), and SPA routing rewrites.
+3. Configure optional environment variables in Vercel project settings:
 
 | Variable | Value |
 |---|---|
-| `VITE_API_BASE` | the API's origin, e.g. `https://isuara-api.onrender.com` |
+| `VITE_API_BASE` | the API's origin, e.g. `https://your-api-host.com` |
 
 Leave it unset and the site still deploys — camera, skeleton, expression
 reading, the 3D avatar and speech are all browser-local and work with no backend
@@ -200,8 +202,7 @@ at all. Only recognition and translation need the API.
 
 For GitHub Pages instead, `.github/workflows/deploy-pages.yml` builds on every
 push to `website`. Pages serves a project site from `/<repo>/`, which the
-workflow passes as `VITE_BASE`; Netlify serves from the root, which
-`netlify.toml` sets to `/`.
+workflow passes as `VITE_BASE`.
 
 ### Why the API image is small
 

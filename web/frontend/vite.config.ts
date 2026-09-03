@@ -14,15 +14,10 @@ import { defineConfig } from 'vite'
 const BACKEND = 'http://localhost:8000'
 
 /**
- * GitHub Pages serves a project site from https://<user>.github.io/<repo>/, so
- * every asset URL needs that prefix. Dev keeps "/" — the dev server is at the
- * origin root — which is why runtime asset paths use import.meta.env.BASE_URL
- * rather than hardcoding either value.
- *
- * Override for a different repo name or a user/organisation site (where the
- * base is "/"):  VITE_BASE=/ npm run build
+ * Root deployment by default ("/") for Vercel, custom domains and dev server.
+ * Can be overridden via VITE_BASE (e.g. for GitHub Pages: VITE_BASE=/iSuara/ npm run build).
  */
-const base = process.env.VITE_BASE ?? (process.env.NODE_ENV === 'production' ? '/iSuara/' : '/')
+const base = process.env.VITE_BASE ?? '/'
 
 export default defineConfig({
   base,

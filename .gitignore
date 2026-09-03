@@ -37,3 +37,7 @@ local.properties
 !avatar.png
 *.tmp
 
+# Temporary notes & changelogs
+Changes_*.md
+
+
