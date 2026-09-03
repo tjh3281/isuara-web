@@ -87,7 +87,7 @@ export const IDLE_PROGRESS: DebateProgress = {
 const DISPLAY_NAMES: Record<string, string> = {
   'gemini-3.1-flash-lite': 'DeepSeek-V4-Flash',
   'gemini-2.5-flash': 'MiniMax-M2.7',
-  'gemini-3.5-flash': 'Kimi--K2.6',
+  'gemini-3.5-flash': 'Kimi-K2.6',
 }
 
 /** The label for a model id — its alias if it has one, otherwise the bare name. */
