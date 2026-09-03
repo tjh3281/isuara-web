@@ -10,9 +10,13 @@
 # inlines every VITE_ variable into the JavaScript it ships.
 
 [build]
+  # `publish` is resolved relative to `base`, so it is "dist" and not
+  # "web/frontend/dist" — the latter would be looked for at
+  # web/frontend/web/frontend/dist and fail with "Deploy directory does not
+  # exist". If Netlify ever reports that, this pair is the first thing to check.
   base    = "web/frontend"
   command = "npm run build"
-  publish = "web/frontend/dist"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
